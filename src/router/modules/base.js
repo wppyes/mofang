@@ -17,6 +17,13 @@ const baseRouter = {
       }
     },
     {
+      path: 'banshichu-banner',
+      component: () => import('@/view/base/banshichu-banner'),
+      meta: {
+        title: '轮播(办事处)'
+      }
+    },
+    {
       path: 'navconfig',
       component: () => import('@/view/base/navconfig'),
       meta: {

@@ -1,14 +1,17 @@
 <template>
-  <div class="bannerlist boxright">
-    
-     <el-tabs v-model="classify" type="card" @tab-click="getList()">
-        <el-tab-pane v-for="item in TypeList" :label="item.Text" :name="item.Value" :key="item.Value"></el-tab-pane>
-      </el-tabs>
+  <div class="bannerlist boxright">   
     <div class="filter-container">
       <div class="filter-item" style="margin-right:20px;">
-        <el-button type="primary" class="filter-item" @click="handleadd('增加首页导航',true)">
-          <i class="el-icon-circle-plus"></i> 增加首页导航
+        <el-button type="primary" class="filter-item" @click="handleadd('增加轮播图',true)">
+          <i class="el-icon-circle-plus"></i> 增加轮播图
         </el-button>
+        <el-button type="primary" class="filter-item" @click="shangjai(1,'开启')" v-if="Model==0">
+          开启轮播图
+        </el-button>
+        <el-button type="danger" class="filter-item" @click="shangjai(0,'关闭')" v-if="Model==1">
+          关闭轮播图
+        </el-button>
+        <span></span>
       </div>
     </div>
     <el-table v-loading="listLoading" :data="list" border fit highlight-current-row>
@@ -19,7 +22,6 @@
       </el-table-column>
       <el-table-column label="跳转" align="center" prop="JumpTypeStr"></el-table-column>
       <el-table-column label="类型" align="center" prop="TypeStr"></el-table-column>
-      <el-table-column label="标题" align="center" prop="Title"></el-table-column>
       <el-table-column label="排序" align="center">
         <template slot-scope="scope">
           <span @click="sort(scope.row,scope.$index,-1)" :class="scope.$index==0?'disabled':''">
@@ -35,7 +37,7 @@
       </el-table-column>
       <el-table-column label="操作" align="center">
         <template slot-scope="scope">
-          <el-button size="mini" type="primary" @click="handleditor(scope.row,'修改首页导航',false)">
+          <el-button size="mini" type="primary" @click="handleditor(scope.row,'修改轮播图',false)">
             <i class="el-icon-edit"></i>
           </el-button>
           <el-button size="mini" type="danger" @click="handledel(scope.row)">
@@ -53,15 +55,11 @@
         label-width="100px"
         style="width: 500px; margin-left:50px;"
       >
-        <el-form-item label="标题" prop="Title">
-          <el-input v-model="temp.Title" placeholder="请填写标题"/>
-        </el-form-item>
         <el-form-item label="链接设置" prop="NavId">
           <el-select v-model="temp.NavId" placeholder="请选择链接类型" @change="isgetlist(false)">
             <el-option v-for="item in ConfigList" :label="item.Name" :key="item.Id" :value="item.Id"></el-option>
           </el-select>
         </el-form-item>
-
         <!-- <div v-show="temp.NavId==2">
           <el-form-item label="门店选择" prop="RelId">       
             <div class="filter-container">
@@ -127,10 +125,10 @@
             @pagination="getwenzhang"
           />
         </div> -->
-        <!-- <el-form-item label="跳转地址" prop="Link" v-show="temp.NavId==3">
+        <el-form-item label="跳转地址" prop="Link" v-show="temp.NavId==1">
           <el-input v-model="temp.Link" placeholder="请填写跳转地址"/>
-        </el-form-item> -->
-        <el-form-item label="图片：" prop="Images">
+        </el-form-item>
+        <el-form-item label="轮播图" prop="Images">
           <div class="video">
             <Uploadimgs v-model="temp.Images" ref="upLoadimg"></Uploadimgs>
             <div class="chicun">尺寸：690*300</div>  
@@ -160,6 +158,10 @@ export default {
   components: { Pagination,Uploadimgs },
   data() {
     return {
+      bannerqu:{
+        mold:0,
+        oid:0
+      },
       list: [], //列表
       mendianlist:[],//门店列表
       mendiantotal:0,//门店总数量
@@ -178,12 +180,11 @@ export default {
         Images:'',
         Link:'',
         NavId:'',
-        Title:'',
         RelId:0,
-        Mold:0
+        Mold:0,
+        OId:0
       }, 
-      classify:'',
-      TypeList:[],
+      Model:'',
       listQuery: {
         //搜素分页处理
         str: "",
@@ -198,34 +199,27 @@ export default {
         type:3
       },
       ConfigList:[],
-      rules:{   
-        Title: [
-          { required: true, message: "标题必须填写！", trigger: "blur" }
-        ],
+      TypeList:[],
+      rules:{  
         Images: [
           { required: true, message: "图片必须上传！", trigger: "blur" }
         ],
         NavId:[
           { required: true, message: "请选择链接设置", trigger: "blur" }
         ],
-        TypeList:[]
       },
     };
   },
   created() {
-    request({
-        url: "CNavigation/GetDDL",
-        method: "get",
-        params: {}
-      }).then(response => {
-        if (response.Status == 1) {
-          this.TypeList=response.List
-          this.classify=response.List[0].Value;
-          this.getList();
-        }
-      });
+    this.temp.OId=0;
+    this.bannerqu.oid=0;
+    this.getList();
+    this.getmodel();
   },
   methods: {
+    backto() {      
+      this.$router.go(-1);
+    },
     getwenzhang(){
       this.listLoadingmendian = true;
       request({
@@ -283,14 +277,26 @@ export default {
     getList() {
       this.listLoading = true;
       request({
-        url: "CNavigation/GetNavigationList",
+        url: "CBanner/GetBannerList",
         method: "get",
-        params: {mold:0,classify:this.classify}
+        params: this.bannerqu
       }).then(response => {
         if (response.Status == 1) {
           this.list = response.List;
           this.ConfigList=response.ConfigList;
+          this.TypeList=response.TypeList;
           this.listLoading = false;
+        }
+      });
+    },
+    getmodel(){
+      request({
+        url: "CBanner/GetBannerSwitch",
+        method: "get",
+        params: {}
+      }).then(response => {
+        if (response.Status == 1) {
+          this.Model = response.Model;
         }
       });
     },
@@ -298,7 +304,6 @@ export default {
       this.temp.Id=0;
       this.temp.JumpType='';
       this.temp.Images='';
-      this.temp.Title='';
       this.temp.Link='';
       this.temp.NavId='';
       this.temp.RelId='';
@@ -314,7 +319,6 @@ export default {
       this.temp.Id=row.Id;
       this.temp.JumpType=row.JumpType;
       this.temp.Images=row.Images;
-      this.temp.Title=row.Title;
       this.temp.Link=row.Link;
       this.temp.NavId=row.NavId;
       row.RelId==0?this.temp.RelId='':this.temp.RelId=parseInt(row.RelId);
@@ -339,46 +343,74 @@ export default {
           // if(this.temp.JumpType!=1 || this.temp.JumpType==1 && this.temp.NavId==8){        
           //   this.temp.RelId=0;
           // }
-          var param={
-              Id:this.temp.Id,
-              Type:this.temp.Type,
-              JumpType:this.temp.JumpType,
-              Images:this.temp.Images,
-              Title:this.temp.Title,
-              NavId:this.temp.NavId,
-              RelId:this.temp.RelId,
-              Link:this.temp.Link,
-              Mold:0,
-              Classify:this.classify
-          };     
-          var data = this.$qs.stringify(param);
-          request({
-            url: "CNavigation/SetNavigation",
-            method: "post",
-            data
-          }).then(response => {
-            if (response.Status==1) {
-              this.getList();          
-              this.dialogFormVisible = false;
-              this.$message({
-                message: response.Msg,
-                type: "success"
-              });
-            }
+          this.subrequest(); 
+        }
+      });
+    },   
+    subrequest(){
+      var param={
+          Id:this.temp.Id,
+          Type:this.temp.Type,
+          JumpType:this.temp.JumpType,
+          Images:this.temp.Images,
+          NavId:this.temp.NavId,
+          RelId:this.temp.RelId,
+          Link:this.temp.Link,
+          Mold:0,
+          OId:this.temp.OId
+      };     
+      var data = this.$qs.stringify(param);
+      request({
+        url: "CBanner/SetBanner",
+        method: "post",
+        data
+      }).then(response => {
+        if (response.Status==1) {
+          this.getList();          
+          this.dialogFormVisible = false;
+          this.$refs.upLoadimg.clearimgs();
+          this.$message({
+            message: response.Msg,
+            type: "success"
           });
         }
       });
-    },    
-    handledel(row) {
-      var data = this.$qs.stringify({ Id: row.Id, Type:this.temp.Type });
-      this.$confirm("确定要删除首页导航吗？", "提示", {
+    }, 
+    shangjai(value,title) {
+      var str= '要'+title+'轮播图吗？';
+      var data = this.$qs.stringify({isswitch:value});
+      this.$confirm(str, "提示", {
         dangerouslyUseHTMLString: true,
         confirmButtonText: "确定",
         cancelButtonText: "取消"
       })
         .then(() => {
           request({
-            url: "CNavigation/Del",
+            url: "CBanner/SetBannerSwitch",
+            method: "post",
+            data
+          }).then(response => {
+            if (response.Status==1) {
+              this.$message({
+                message: response.Msg,
+                type: "success"
+              });
+              this.Model=value;
+            }
+          });
+        })
+        .catch(() => {});
+    }, 
+    handledel(row) {
+      var data = this.$qs.stringify({ Id: row.Id, Type:this.temp.Type });
+      this.$confirm("确定要删除轮播图吗？", "提示", {
+        dangerouslyUseHTMLString: true,
+        confirmButtonText: "确定",
+        cancelButtonText: "取消"
+      })
+        .then(() => {
+          request({
+            url: "CBanner/Del",
             method: "post",
             data
           }).then(response => {
@@ -411,7 +443,7 @@ export default {
         id2 = arr1[index + type].Id; //当前id为 id1,替换id为id2
       var data = this.$qs.stringify({ id1: id1, id2: id2 });
       request({
-        url: "CNavigation/Sort",
+        url: "CBanner/Sort",
         method: "post",
         data
       }).then(response => {

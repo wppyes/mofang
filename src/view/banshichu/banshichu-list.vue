@@ -45,14 +45,14 @@
       <el-button class="filter-item" type="primary" icon="el-icon-search" @click="handleFilter">搜索</el-button>   
     </div>
     <el-table v-loading="listLoading" :data="list" border fit highlight-current-row>
-      <el-table-column label="街道办名字" align="center" prop="Agency"></el-table-column>  
-      <el-table-column label="地址" align="left" prop="Address">
+      <el-table-column label="街道办名字" align="center" prop="Agency" width="200px"></el-table-column>  
+      <el-table-column label="地址" align="left" prop="Address" width="250px">
         <template slot-scope="scope">
          <span v-text="setdizhi(scope.row)"></span>{{scope.row.Address}}
         </template>
       </el-table-column>
-      <el-table-column label="负责人" align="center" prop="Name"></el-table-column>  
-      <el-table-column label="电话" align="center" prop="Phone"></el-table-column>  
+      <el-table-column label="负责人" align="center" prop="Name" width="100px"></el-table-column>  
+      <el-table-column label="电话" align="center" prop="Phone" width="150px"></el-table-column>  
       <!-- <el-table-column label="状态" align="center">
         <template slot-scope="scope">
          <span v-text="setstatus(scope.row.Status)" :class="'status'+scope.row.Status"></span>
@@ -63,20 +63,20 @@
           <el-button size="mini" type="primary" @click="handleditor(scope.row,'修改街道办',false)">
             <i class="el-icon-edit"></i>
           </el-button>  
+          <el-button size="mini" v-if="scope.row.BSwitch==0" type="primary" @click="shangjai(scope.row,1,'开启')">
+            开启（轮播图）
+          </el-button>
+          <el-button size="mini" type="danger" @click="shangjai(scope.row,0,'关闭')" v-if="scope.row.BSwitch==1">
+            关闭（轮播图）
+          </el-button>
           <el-button size="mini" type="primary" @click="linkto(scope.row)">
             轮播图
           </el-button>     
           <el-button size="mini" type="primary" @click="linktoad(scope.row)">
             广告位
-          </el-button>     
-          <!-- <el-button size="mini" type="primary" @click="shangjai(scope.row,1,'禁用')" v-if="scope.row.Status!=1">
-            禁用
-          </el-button> -->
+          </el-button> 
           <!-- <el-button size="mini" v-if="scope.row.Status!=2" type="danger" @click="shangjai(scope.row,2,'解约')">
             解约
-          </el-button> -->
-          <!-- <el-button size="mini" v-if="scope.row.Status!=0" type="danger" @click="shangjai(scope.row,0,'启用')">
-            启用
           </el-button> -->
         </template>
       </el-table-column>
@@ -135,6 +135,7 @@
         <el-form-item label="电话" prop="Phone">
           <el-input v-model="temp.Phone" placeholder="请填写电话"/>
         </el-form-item>
+
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">取消</el-button>
@@ -287,8 +288,8 @@ export default {
       }
     },
     shangjai(row,value,title) {
-      var str= '要'+title+'该街道办吗？';
-      var data = this.$qs.stringify({ Id: row.Id,Status:value});
+      var str= '要'+title+'轮播图吗？';
+      var data = this.$qs.stringify({ Id: row.Id,BSwitch:value});
       this.$confirm(str, "提示", {
         dangerouslyUseHTMLString: true,
         confirmButtonText: "确定",
@@ -296,7 +297,7 @@ export default {
       })
         .then(() => {
           request({
-            url: "Office/UpdateStatus",
+            url: "Office/UpdateBSwitch",
             method: "post",
             data
           }).then(response => {
@@ -305,7 +306,7 @@ export default {
                 message: response.Msg,
                 type: "success"
               });
-              row.Status=value;
+              row.BSwitch=value;
             }
           });
         })
