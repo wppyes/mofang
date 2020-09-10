@@ -133,7 +133,13 @@
         <el-form-item label="图片：" prop="Images">
           <div class="video">
             <Uploadimgs v-model="temp.Images" ref="upLoadimg"></Uploadimgs>
-            <div class="chicun">尺寸：690*300</div>  
+            <div class="chicun">尺寸：100*100</div>  
+          </div>
+        </el-form-item>
+        <el-form-item label="选中图片：" prop="Picture" v-if="classify==1">
+          <div class="video">
+            <Uploadimgs v-model="temp.Picture" ref="upLoadimg"></Uploadimgs>
+            <div class="chicun">尺寸：100*100</div>  
           </div>
         </el-form-item>
       </el-form>
@@ -176,6 +182,7 @@ export default {
         Type:'',
         JumpType:'',
         Images:'',
+        Picture:'',
         Link:'',
         NavId:'',
         Title:'',
@@ -203,6 +210,9 @@ export default {
           { required: true, message: "标题必须填写！", trigger: "blur" }
         ],
         Images: [
+          { required: true, message: "图片必须上传！", trigger: "blur" }
+        ],
+        Picture: [
           { required: true, message: "图片必须上传！", trigger: "blur" }
         ],
         NavId:[
@@ -298,6 +308,7 @@ export default {
       this.temp.Id=0;
       this.temp.JumpType='';
       this.temp.Images='';
+      this.temp.Picture='';
       this.temp.Title='';
       this.temp.Link='';
       this.temp.NavId='';
@@ -314,6 +325,7 @@ export default {
       this.temp.Id=row.Id;
       this.temp.JumpType=row.JumpType;
       this.temp.Images=row.Images;
+      this.temp.Picture=row.Picture;
       this.temp.Title=row.Title;
       this.temp.Link=row.Link;
       this.temp.NavId=row.NavId;
@@ -344,6 +356,7 @@ export default {
               Type:this.temp.Type,
               JumpType:this.temp.JumpType,
               Images:this.temp.Images,
+              Picture:this.temp.Picture,
               Title:this.temp.Title,
               NavId:this.temp.NavId,
               RelId:this.temp.RelId,

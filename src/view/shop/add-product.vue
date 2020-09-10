@@ -283,6 +283,7 @@ export default {
               }              
             }
           }
+          this.$refs.editor.setContent(response.Model.ProductDetails);  
           this.CategoryList=response.CategoryList;
           this.CompayList=response.CompayList;
           this.PriceType=response.PriceType;          
@@ -452,7 +453,11 @@ export default {
       }
       this.temp.SpecValue.splice(index,1);
     },
-    backto() {      
+    backto() {           
+      this.$nextTick(() => {
+        this.$refs['dataForm'].clearValidate()
+      })
+      this.$router.go(-1); 
       // this.temp.CategoryId = '';
       // this.temp.CompanyId = '';
       // this.temp.ProductName = '';
@@ -464,7 +469,6 @@ export default {
       // this.temp.AttrValue = [];
       // this.temp.SpecValue = [];
       // this.temp.Specifications = [];
-      this.$router.go(-1);
     },
     createData() {
       if(this.temp.AttrValue.length>0){
@@ -614,7 +618,24 @@ export default {
             message: response.Msg,
             type: "success"
           });
-          // this.backto();
+          if(this.temp.Id==0){
+             this.temp.AttrTitle='默认规格';
+              this.temp.CategoryId = '';
+              this.temp.CompanyId = '';
+              this.temp.ProductName = '';
+              this.temp.ProductImg = '';
+              this.temp.ShowType = '';
+              this.temp.ShowIntegralPrice = 0;
+              this.temp.ShowCashPrice = 0;
+              this.temp.Img =''
+              this.temp.ProductDetails = '';
+              this.temp.SpecTitle = '';
+              this.temp.AttrValue = [];
+              this.temp.SpecValue = [];
+              this.temp.Specifications = [];
+              this.$refs.editor.setContent('');
+          }  
+          this.backto();
         }
       });
     }
