@@ -10,6 +10,13 @@ const baseRouter = {
   title: 'title',
   children: [
     {
+      path: 'jifen',
+      component: () => import('@/view/base/jifen'),
+      meta: {
+        title: '积分配置'
+      }
+    },
+    {
       path: 'banner-list',
       component: () => import('@/view/base/banner-list'),
       meta: {

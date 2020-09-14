@@ -323,7 +323,7 @@ export default {
           var param1 = {
               Id: bigid,
               AId: id,
-              SId: '',
+              SId: 0,
               AttrName: '',
               SpecName: '',
               Stock: 1000,

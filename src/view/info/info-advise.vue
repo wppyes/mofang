@@ -1,76 +1,28 @@
 <template>
-  <div class="product boxright">
+  <div class="advise boxright">
     <div class="filter-container">
-      <div class="filter-item" style="margin-right:20px;">
-        <el-button type="primary" @click="linktoadd(0)">
-          <i class="el-icon-circle-plus"></i> 增加产品
-        </el-button>
-      </div>
       <el-select
-        v-model="temp.cate1"
-        placeholder="一级分类"
-        clearable
-        style="width: 150px"
-        class="filter-item"
-        @change="temp.cate2='';listQuery.categoryid=temp.cate1"
-      >
-        <el-option v-for="item in CategoryList" v-if="item.ParentId==0" :label="item.Name" :value="item.Id" :key="item.Id"></el-option>
-      </el-select>
-      <el-select
-        v-model="temp.cate2"
-        placeholder="二级分类"
-        clearable
-        style="width: 150px"
-        class="filter-item"
-        :disabled="temp.cate1==''"
-        @change="listQuery.categoryid=temp.cate2"
-      >
-        <el-option v-for="item in CategoryList" v-if="item.ParentId==temp.cate1" :label="item.Name" :value="item.Id" :key="item.Id"></el-option>
-      </el-select>
-      <el-select
-        v-model="listQuery.status"
-        placeholder="状态"
+        v-model="listQuery.type"
+        placeholder="类型"
         clearable
         style="width: 150px"
         class="filter-item"
       >
-        <el-option v-for="item in StatusList" :label="item.Text" :value="item.Value" :key="item.Value"></el-option>
-      </el-select>
-      <el-input
-        placeholder="请输入商品名称"
-        v-model="listQuery.productname"
-        style="width: 150px;"
-        class="filter-item"
-        clearable
-      />  
+        <el-option v-for="item in DDL" :label="item.Text" :value="item.Value" :key="item.Value"></el-option>
+      </el-select> 
       <el-button class="filter-item" type="primary" icon="el-icon-search" @click="handleFilter">搜索</el-button>   
     </div>
     <el-table v-loading="listLoading" :data="list" border fit highlight-current-row>
-      <el-table-column label="产品名称" align="left" prop="ProductName" width="700px"></el-table-column>
-      <el-table-column label="产品图片" align="center" width="100px">
+      <el-table-column label="类型" align="center" prop="TypeStr" width="120px"></el-table-column>
+      <el-table-column label="内容" align="left" prop="Details"></el-table-column> 
+      <el-table-column label="时间" align="center" prop="CreatedStr" width="180px"></el-table-column> 
+      <el-table-column label="操作" align="center" width="100px">
         <template slot-scope="scope">
-          <img :src="scope.row.ProductImg+'?imageView2/1/w/40/h/40'" class="img">
-        </template>
-      </el-table-column>  
-      <el-table-column label="销量" align="center" prop="SaleNum" width="100px"></el-table-column>   
-      <el-table-column label="状态" align="center" width="100px">
-        <template slot-scope="scope">
-         <span v-text="setstatus(scope.row.Status)" :class="'status'+scope.row.Status"></span>
-        </template>
-      </el-table-column>  
-      <el-table-column label="操作" align="center">
-        <template slot-scope="scope">
-          <el-button size="mini" type="primary" @click="linktoadd(scope.row.Id)">
-            <i class="el-icon-edit"></i>
+          <el-button size="mini" type="primary" @click="handle(scope.row)" v-if="scope.row.Status==0">
+            操作
           </el-button>
-          <el-button size="mini" type="primary" @click="shangjai(scope.row,1)" v-if="scope.row.Status!=1">
-            上架
-          </el-button>
-          <el-button size="mini" v-if="scope.row.Status==1" type="danger" @click="shangjai(scope.row,2)">
-            下架
-          </el-button>
-          <el-button size="mini" type="primary" @click="zhiding(scope.row)">
-            置顶
+          <el-button size="mini" type="primary" @click="show(scope.row)">
+            详情
           </el-button>
         </template>
       </el-table-column>
@@ -83,15 +35,29 @@
       :limit.sync="listQuery.pageSize"
       @pagination="getList"
     />
+    <el-dialog title="详情" :visible.sync="dialogFormVisible" :close-on-click-modal="false" width="710px">
+        <div class="details">
+          {{detail}}
+        </div>
+        <el-divider content-position="left">图片展示</el-divider>
+        <el-image v-for="item in img"
+          style="width: 80px; height: 80px; margin:10px"
+          :src="item" 
+          :key="item"
+          :preview-src-list="img">
+        </el-image>
+        
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogFormVisible = false">关闭</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 <script>
 import request from "@/utils/request";
 import Pagination from "@/components/Pagination";
-// import upfile from "@/utils/upload";
-var tabarr=[];
 export default {
-  name: "product",
+  name: "advise",
   components: { Pagination },
   data() {
     return {
@@ -99,44 +65,43 @@ export default {
       total:0,//总数量
       listLoading: false, //列表加载
       listQuery: {
-        //搜素分页处理
-        productname:'',
         pageIndex: 1,
         pageSize: 15,
-        categoryid:'',
-        status:''
+        type:''
       },
-      temp:{
-        cate1:'',
-        cate2:''
-      },
-      CategoryList:[],
-      StatusList:[]
+      img:[],      
+      detail:'',
+      DDL:[],
+      dialogFormVisible:false,
     };
   },
-  created() {
-    this.getList();    
+  created() {  
     request({
-      url: "Product/GetDDL",
-      method: "get",
-      params: {}
-    }).then(response => {
-      if (response.Status == 1) {
-        this.CategoryList=response.CategoryList;
-        this.StatusList=response.StatusList;
-      }
+        url: "PComplaint/GetDDL",
+        method: "get",
+        params: {}
+      }).then(response => {
+        if (response.Status == 1) {
+          this.DDL = response.List;
+        }
     });
+    this.getList(); 
   },
   mounted () {
-    this.$bus.$on('productchange', ()=> {
-      this.getList()
-    })
-  },
+  },  
   methods: {
+    show(row){
+      this.img=[];
+      this.detail=row.Details;
+      if(row.Img){
+        this.img=JSON.parse(row.Img)
+      };
+      this.dialogFormVisible=true;
+    },
     getList(){
       this.listLoading = true;
       request({
-        url: "Product/GetProductList",
+        url: "PComplaint/GetPComplaintList",
         method: "get",
         params: this.listQuery
       }).then(response => {
@@ -151,16 +116,16 @@ export default {
       this.listQuery.pageIndex = 1;
       this.getList();
     },   
-    zhiding(row){
+    handle(row){
       var data = this.$qs.stringify({ Id: row.Id});
-      this.$confirm("确定要置顶该产品吗？", "提示", {
+      this.$confirm("确定已处理该问题吗？", "提示", {
         dangerouslyUseHTMLString: true,
         confirmButtonText: "确定",
         cancelButtonText: "取消"
       })
         .then(() => {
           request({
-            url: "Product/UpdateTime",
+            url: "Guarantee/UpdateStatus",
             method: "post",
             data
           }).then(response => {
@@ -168,61 +133,24 @@ export default {
               this.$message({
                 message: response.Msg,
                 type: "success"
-              });
-            }
-          });
-        })
-        .catch(() => {});
-    },
-    shangjai(row,value) {
-      var str= value==2?'下架产品彻底消失，确定要下架该产品吗？':'确定要上架该产品吗？';
-      var data = this.$qs.stringify({ Id: row.Id,Status:value});
-      this.$confirm(str, "提示", {
-        dangerouslyUseHTMLString: true,
-        confirmButtonText: "确定",
-        cancelButtonText: "取消"
-      })
-        .then(() => {
-          request({
-            url: "Product/UpdateStatus",
-            method: "post",
-            data
-          }).then(response => {
-            if (response.Status==1) {
-              this.$message({
-                message: response.Msg,
-                type: "success"
-              });
+              });              
               row.Status=value;
+              row.StatusStr='已处理';
             }
           });
         })
         .catch(() => {});
-    },    
-    linktoadd(id){
-      this.$router.push({
-        path: "/shop/product-list/add-product",
-        query: { id:id }
-      });
-    },
-    setstatus(code){
-      for(let i in this.StatusList){
-        if(this.StatusList[i].Value == code){
-          return this.StatusList[i].Text;
-        }
-      }
     },
   }
 };
 </script>
 <style lang="scss" rel="stylesheet/scss">
-.product {
-  .img{width:40px; height:40px;}
-  .status2{color:#F56C6C;}
-  .status0{color:#67C23A;}
-  .status1{color:#E6A23C;}
-  .status3{color:#409EFF;}
-  .status4{color:#909399;}
-  .qingkong{margin-left: 30px; color: #409EFF;}
-}
+  .advise{
+    .status2{color:#F56C6C;}
+    .status0{color:#67C23A;}
+    .status1{color:#E6A23C;}
+    .status3{color:#409EFF;}
+    .status4{color:#909399;}
+    .details{line-height: 40px;}
+  }
 </style>
