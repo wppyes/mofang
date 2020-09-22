@@ -21,7 +21,7 @@
 <script>
 import * as qiniu from "qiniu-js";
 import request from "@/utils/request";
-var imglegth,templength=0,str='';
+var imglegth=0,templength=0,str='';
 export default {
   name: 'Tinymce',
   props: {

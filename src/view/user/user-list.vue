@@ -39,6 +39,9 @@
           <el-button size="mini" type="primary" @click="showwuye(scope.row)">
             物业详情
           </el-button>
+          <el-button size="mini" type="primary" @click="addjifen(scope.row)">
+            增加积分
+          </el-button>
         </template>
       </el-table-column>   
     </el-table> 
@@ -50,36 +53,30 @@
       :limit.sync="listQuery.pageSize"
       @pagination="getList"
     />
+    <el-dialog :title="titles" :visible.sync="addjifenVisible" :close-on-click-modal="false" width="550px">
+       <el-form ref="addjifenForm" :rules="addjifenrules" :model="addjifentemp" label-position="left" label-width="80px" style="width: 480px; margin-left:10px;">
+        <el-form-item label="积分" prop="balance">
+          <el-input v-model="addjifentemp.balance" placeholder="请填写积分数量"/>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="addjifenVisible = false">取消</el-button>
+        <el-button type="primary" @click="addsub">确定</el-button>
+      </div>
+    </el-dialog>
     <el-dialog :title="titles" :visible.sync="dialogwuyeVisible" :close-on-click-modal="false" width="550px">
       
     </el-dialog>
     <el-dialog :title="titles" :visible.sync="dialogjifenVisible" :close-on-click-modal="false" width="550px">
       <el-table v-loading="listLoadingjifen" :data="listjifen" border fit highlight-current-row>
-        <el-table-column label="昵称" align="left" prop="NickName" width="100px"></el-table-column>
-        <el-table-column label="头像" align="center" width="60px">
+        <el-table-column label="类型" align="center" prop="TypeStr"></el-table-column>   
+        <el-table-column label="金额" align="center" prop="Amount">
           <template slot-scope="scope">
-            <img :src="scope.row.headimgUrl+'?imageView2/1/w/40/h/40'" class="img">
-          </template>
-        </el-table-column>  
-        <el-table-column label="性别" align="center" prop="Sex" width="100px">
-          <template slot-scope="scope">
-            {{scope.row.Sex==1?'男':'女'}}
-          </template>
-        </el-table-column>    
-        <el-table-column label="姓名" align="center" prop="Name" width="100px"></el-table-column>
-        <el-table-column label="身份证号" align="center" prop="CardNo"></el-table-column>
-        <el-table-column label="手机号" align="center" prop="Phone" width="150px"></el-table-column>
-        <el-table-column label="积分" align="center" prop="Balance" width="150px"></el-table-column>
-        <el-table-column label="操作" align="center">
-          <template slot-scope="scope">
-            <el-button size="mini" type="primary" @click="showjifen(scope.row)">
-              积分明细
-            </el-button>
-            <el-button size="mini" type="primary" @click="showwuye(scope.row)">
-              物业详情
-            </el-button>
-          </template>
-        </el-table-column>   
+          <span :class="'status'+scope.row.Type">{{scope.row.Type==1?'+':'-'}}</span>{{scope.row.Amount}}
+        </template>
+        </el-table-column>
+        <el-table-column label="余额" align="center" prop="Balance"></el-table-column>
+        <el-table-column label="时间" align="center" prop="CreatedStr" width="180px"></el-table-column>
       </el-table> 
       <pagination
         small
@@ -110,6 +107,7 @@
         <el-button type="primary" @click="createData">确定</el-button>
       </div>
     </el-dialog>
+
   </div>
 </template>
 <script>
@@ -139,6 +137,7 @@ export default {
         Userid:''
       },
       titles:'',
+      addjifenVisible:false,
       dialogwuyeVisible:false,
       dialogjifenVisible:false,
       dialogFormVisible:false,
@@ -147,6 +146,15 @@ export default {
         NickName:'',
         headimgUrl:'',
         unionId:''
+      },
+      addjifentemp:{
+        userId:'',
+        balance:''
+      },
+      addjifenrules:{
+        balance: [
+          { required: true, message: "请填写积分！", trigger: "blur" }
+        ],
       },
       yonghurules:{  
         headimgUrl: [
@@ -165,6 +173,15 @@ export default {
     this.getList();    
   },
   methods: {
+    addjifen(row){
+      this.titles='新增'+row.NickName+'的积分'
+      this.addjifenVisible=true;
+      this.addjifentemp.userId=row.UserId;
+      this.addjifentemp.balance='';    
+      this.$nextTick(() => {
+        this.$refs["addjifenForm"].clearValidate();
+      });
+    },
     handleadd(){
       this.dialogFormVisible=true;
       this.yonghutemp.NickName='';
@@ -173,6 +190,28 @@ export default {
       this.$nextTick(() => {
         this.$refs["yonghuForm"].clearValidate();
       });
+    },
+    addsub(){
+      this.$refs["addjifenForm"].validate(valid => {
+        if (valid) {    
+          var data = this.$qs.stringify(this.addjifentemp);
+          request({
+            url: "User/SaveBalance",
+            method: "post",
+            data
+          }).then(response => {
+            if (response.Status==1) {
+              this.getList();          
+              this.addjifenVisible = false;
+              this.$message({
+                message: response.Msg,
+                type: "success"
+              });
+            }
+          });
+        }
+      });
+    
     },
     createData(){
        this.$refs["yonghuForm"].validate(valid => {
@@ -204,7 +243,7 @@ export default {
     showjifen(item){
       this.temp=item;
       this.dialogjifenVisible=true;
-      this.titles=item.Name+'的积分明细';
+      this.titles=item.NickName+'的积分明细';
       this.jifen.Userid=item.UserId;
       this.getjifenList()
     },
@@ -250,4 +289,11 @@ export default {
 </script>
 <style lang="scss" rel="stylesheet/scss">
   .user-list .img{width: 40px;}
+  .user-list{
+    .status2{color:#F56C6C;}
+    .status0{color:#E6A23C;}
+    .status1{color:#67C23A;}
+    .status3{color:#409EFF;}
+    .status4{color:#909399;}
+  }
 </style>

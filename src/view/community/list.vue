@@ -67,7 +67,7 @@
         label-width="80px"
         style="width: 600px; margin-left:50px;"
       >
-         <el-form-item label="选择地址" prop="Areo">
+         <el-form-item label="选择地址" prop="City">
             <el-select
               v-model="tempadd.Province"
               placeholder="省"
@@ -79,7 +79,7 @@
               <el-option v-for="item in citys" :label="item.name" :value="item.code" :key="item.code"></el-option>
             </el-select> 
             <el-select
-              v-model="tempadd.Areo"
+              v-model="tempadd.City"
               placeholder="市"
               clearable
               style="width: 130px"
@@ -154,7 +154,7 @@ export default {
         //搜素分页处理
         pageIndex: 1,
         pageSize: 10,
-        province:'',
+        province:'410000',
         areo:'',
         category:''
       },
@@ -170,13 +170,13 @@ export default {
       shi:[],
       qu:[],
       tempadd:{
-          Areo:'',
+          City:'',
           Category:'',
           UserId:'',
           Title:'',
           Contents:'',
           picIds:'',
-          Province:''
+          Province:'410000'
       },
       qiniu:{
         token:'',
@@ -184,7 +184,7 @@ export default {
       },
       rulesadd: {
         //校验
-        Areo: [
+        City: [
           { required: true, message: "区域必须选择！", trigger: "blur" }
         ],
         Category: [
@@ -204,6 +204,7 @@ export default {
   },
   created() {
     this.citys=citys;
+      this.getshi(1);
     request({
       url: "Forum/GetDDL",
       method: "get",
@@ -235,7 +236,7 @@ export default {
         if(this.citys[i].code==this.tempadd.Province && type==2){
           this.shi=this.citys[i].cityList;  
           if(!bo){
-           this.tempadd.Areo='';
+           this.tempadd.City='';
           }
           break;
         }
@@ -306,7 +307,6 @@ export default {
         .catch(() => {});
     },
     getpicids(){
-      let str='';
       for(let i in this.piclist){
           str+=this.piclist[i].url+','
       };
@@ -344,35 +344,40 @@ export default {
       this.tempadd.Contents='';
       this.tempadd.picIds='';
       this.tempadd.Title='';
-      this.tempadd.Province='';
-      this.tempadd.Areo='';
+      this.tempadd.Province='410000';
+      this.tempadd.City='';
       this.piclist=[];
+      this.getshi(2);
       this.dialogaddVisible = true;
       this.$nextTick(() => {
         this.$refs["dataadd"].clearValidate();
       });
     },
     add(){
-      if(this.tempadd.picIds!='' && this.tempadd.Contents==''){
-        this.tempadd.Contents='*1';
-      };  
       this.$refs["dataadd"].validate(valid => {
         if (valid) {
-          if(this.tempadd.Contents=='*1'){
-            this.tempadd.Contents='';
-          };        
           this.$refs.upLoadimg.subimgs();          
         }
       });  
     },
     subadd(str){
-      this.tempadd.picIds=str;  
+      var temparr=[] 
+      if(str){
+        this.tempadd.picIds=str;         
+        var arr=str.split(',');
+        for(let i =0; i<arr.length; i++){
+          var paam={
+            Url:arr[i]
+          }
+          temparr.push(paam);
+        }
+      }
       let param={
-        Areo:this.tempadd.Areo,
+        City:this.tempadd.City,
         Category:this.tempadd.Category,
         Title:this.tempadd.Title,
         Contents:this.tempadd.Contents,
-        ResJson:this.tempadd.picIds,
+        ResJson:JSON.stringify(temparr),
         UserId:this.tempadd.UserId,
       }
       var data = this.$qs.stringify(param);

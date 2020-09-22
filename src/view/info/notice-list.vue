@@ -150,7 +150,7 @@ export default {
     },    
     linktoadd(id){
       this.$router.push({
-        path: "info/notice-list/add-notice",
+        path: "/info/notice-list/add-notice",
         query: { id:id }
       });
     },
