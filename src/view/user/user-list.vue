@@ -16,12 +16,12 @@
       <el-button class="filter-item" type="primary" icon="el-icon-search" @click="handleFilter">搜索</el-button>   
     </div>
     <el-table v-loading="listLoading" :data="list" border fit highlight-current-row>
-      <el-table-column label="昵称" align="left" prop="NickName" width="100px"></el-table-column>
       <el-table-column label="头像" align="center" width="60px">
         <template slot-scope="scope">
           <img :src="scope.row.headimgUrl+'?imageView2/1/w/40/h/40'" class="img">
         </template>
       </el-table-column>  
+      <el-table-column label="昵称" align="left" prop="NickName" width="180px"></el-table-column>
       <el-table-column label="性别" align="center" prop="Sex" width="100px">
         <template slot-scope="scope">
           {{scope.row.Sex==1?'男':'女'}}
@@ -37,7 +37,7 @@
             积分明细
           </el-button>
           <el-button size="mini" type="primary" @click="showwuye(scope.row)">
-            物业详情
+            物业
           </el-button>
           <el-button size="mini" type="primary" @click="addjifen(scope.row)">
             增加积分
@@ -57,6 +57,9 @@
        <el-form ref="addjifenForm" :rules="addjifenrules" :model="addjifentemp" label-position="left" label-width="80px" style="width: 480px; margin-left:10px;">
         <el-form-item label="积分" prop="balance">
           <el-input v-model="addjifentemp.balance" placeholder="请填写积分数量"/>
+        </el-form-item>
+        <el-form-item label="描述" prop="remark">
+          <el-input v-model="addjifentemp.remark" placeholder="请填写描述"/>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -149,11 +152,15 @@ export default {
       },
       addjifentemp:{
         userId:'',
-        balance:''
+        balance:'',
+        remark:''
       },
       addjifenrules:{
         balance: [
           { required: true, message: "请填写积分！", trigger: "blur" }
+        ],
+        remark: [
+          { required: true, message: "请填写描述！", trigger: "blur" }
         ],
       },
       yonghurules:{  
@@ -178,6 +185,8 @@ export default {
       this.addjifenVisible=true;
       this.addjifentemp.userId=row.UserId;
       this.addjifentemp.balance='';    
+      this.addjifentemp.remark='';
+
       this.$nextTick(() => {
         this.$refs["addjifenForm"].clearValidate();
       });

@@ -70,7 +70,7 @@
       >下载订单</el-button>
     </div>
     <el-table v-loading="listLoading" :data="list" border fit highlight-current-row>
-      <el-table-column label="编号" align="left" prop="PayOrderNum">
+      <el-table-column label="编号" align="left" prop="PayOrderNum" width="210px">
         <template slot-scope="scope">
          UserId：{{scope.row.UserId}}<br/>内部：{{scope.row.OrderNum}}<br/>支付：{{scope.row.PayOrderNum}}
         </template>
@@ -91,21 +91,23 @@
           <span v-if="scope.row.Type!=0"> 现金：{{scope.row.CashPrice}}元</span>
         </template>
       </el-table-column>
-      <el-table-column label="数量" align="center" prop="Number" width="80px"></el-table-column>      
-      <el-table-column label="用户信息" align="left" prop="PayOrderNum">
+      <el-table-column label="数量" align="center" prop="Number" width="50px"></el-table-column>      
+      <el-table-column label="用户信息" align="left" prop="PayOrderNum" width="160px">
         <template slot-scope="scope">
-         物业名称：{{scope.row.CellName}}<br/>姓名：{{scope.row.Name}}<br/>电话：{{scope.row.Phone}}
+         物业名称：{{scope.row.CellName}}<br/>昵称：{{scope.row.NickName}}<br/>电话：{{scope.row.Phone}}
         </template>
       </el-table-column>
-      <el-table-column label="时间" align="center" prop="CreatedStr" width="180px"></el-table-column>
-      <el-table-column label="状态" align="center" prop="Status" width="90px">
+      <el-table-column label="时间" align="center" prop="CreatedStr" width="160px"></el-table-column>
+      <el-table-column label="状态" align="center" prop="Status" width="70px">
         <template slot-scope="scope">
           <span :class="'status'+scope.row.Status" v-text="setliexing(scope.row.Status)"></span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" width="120px">
+      <el-table-column label="操作" align="center" width="150px">
         <template slot-scope="scope">
           <el-button size="mini" type="primary" @click="detail(scope.row)">详情</el-button>
+          <el-button size="mini" type="primary" v-if="scope.row.Status==1" @click="change(scope.row,6,'发货')">发货</el-button>
+          <el-button size="mini" type="primary" v-if="scope.row.Status==6" @click="change(scope.row,3,'签收')">签收</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -182,6 +184,31 @@ export default {
     }
   },
   methods: { 
+    change(row,value,title) {
+      var str= '确认要'+title+'该订单吗？';
+      var data = this.$qs.stringify({ ordernum: row.OrderNum,status:value});
+      this.$confirm(str, "提示", {
+        dangerouslyUseHTMLString: true,
+        confirmButtonText: "确定",
+        cancelButtonText: "取消"
+      })
+        .then(() => {
+          request({
+            url: "Orders/UpdateOrders",
+            method: "post",
+            data
+          }).then(response => {
+            if (response.Status==1) {
+              this.$message({
+                message: response.Msg,
+                type: "success"
+              });
+              row.Status=value;
+            }
+          });
+        })
+        .catch(() => {});
+    },     
     setype(type){
       for(let i in this.TypeList){
         if(this.TypeList[i].Value==type){
@@ -235,7 +262,7 @@ export default {
       }))
     },
     detail(row) {      
-      this.titles=row.Name+'的订单详情';
+      this.titles=row.NickName+'的订单详情';
       this.dialogdingdan=true;
       this.item=row;
       

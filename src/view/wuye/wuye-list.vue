@@ -52,10 +52,13 @@
         <el-option v-for="item in StatusList" :label="item.Text" :value="item.Value" :key="item.Value"></el-option>
       </el-select> 
       <el-button class="filter-item" type="primary" icon="el-icon-search" @click="handleFilter">搜索</el-button>   
+      <div class="filter-item">
+          <el-button @click="showlist=!showlist">{{showlist?'隐藏':'显示'}}CODE/识别码</el-button>
+        </div>
     </div>
     <el-table v-loading="listLoading" :data="list" border fit highlight-current-row>
-      <el-table-column label="CODE" align="left" prop="Code" width="110px"></el-table-column>
-      <el-table-column label="识别码" align="left" prop="UniqueId" width="150px"></el-table-column>
+      <el-table-column label="CODE" align="left" prop="Code" width="110px" v-if="showlist"></el-table-column>
+      <el-table-column label="识别码" align="left" prop="UniqueId" width="150px" v-if="showlist"></el-table-column>
       <el-table-column label="街道办" align="left" prop="Agency" width="150px"></el-table-column>
       <el-table-column label="小区名称" align="center" prop="CellName" width="150px"></el-table-column>  
       <el-table-column label="公司名称" align="center" prop="Corporate" width="150px"></el-table-column>  
@@ -66,13 +69,29 @@
         <template slot-scope="scope">
          <span v-text="setstatus(scope.row.Status)" :class="'status'+scope.row.Status"></span>
         </template>
+      </el-table-column>        
+      <el-table-column label="支付" align="center" width="150px">
+        <template slot-scope="scope">
+         <!-- <span :class="'status'+scope.row.Switch">{{scope.row.Switch==0?'未开启':'开启'}}</span> -->
+         <div>
+
+          <el-button size="mini" type="primary" @click="zhifu(scope.row)">
+            设置
+          </el-button>          
+          <el-button size="mini" v-if="scope.row.Switch==0 && scope.row.AppId" @click="changes(scope.row,1)">
+            开启
+          </el-button>
+          <el-button size="mini" type="danger" v-if="scope.row.Switch==1 && scope.row.AppId" @click="changes(scope.row,0)">
+            关闭
+          </el-button>
+         </div>
+        </template>
       </el-table-column>  
       <el-table-column label="操作" align="center">
         <template slot-scope="scope">
           <el-button size="mini" type="primary" @click="handleditor(scope.row,'修改物业',false)">
             <i class="el-icon-edit"></i>
           </el-button>
-          
           <el-button size="mini" type="primary" @click="shangjai(scope.row,1,'禁用')" v-if="scope.row.Status!=1">
             禁用
           </el-button>
@@ -147,6 +166,23 @@
         <el-button type="primary" @click="createData">确定</el-button>
       </div>
     </el-dialog>
+     <el-dialog title="支付设置" :visible.sync="dialogzhifuVisible" :close-on-click-modal="false" width="550px">
+      <el-form ref="datazhifuForm" :rules="zhifurules" :model="zhifutemp" label-position="left" label-width="100px" style="width: 500px; margin-left:10px;">
+          <el-form-item label="MchId" prop="MchId">
+            <el-input v-model="zhifutemp.MchId" placeholder="请填写MchId" show-password/>
+          </el-form-item>
+          <el-form-item label="AppId" prop="AppId">
+            <el-input v-model="zhifutemp.AppId" placeholder="请填写AppId" show-password/>
+          </el-form-item>
+          <el-form-item label="ApiKey" prop="ApiKey">
+            <el-input v-model="zhifutemp.ApiKey" placeholder="请填写ApiKey" show-password/>
+          </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogzhifuVisible = false">取消</el-button>
+        <el-button type="primary" @click="sub">确定</el-button>
+      </div>
+    </el-dialog>
     <pagination
       small
       :total="total"
@@ -181,6 +217,7 @@ export default {
       iscreate:false,//是否是添加
       dialogStatus:'',
       dialogFormVisible:false,
+      dialogzhifuVisible:false,
       listQuery: {
         //搜素分页处理
         name:'',
@@ -204,6 +241,15 @@ export default {
         OId:'',
         Agency:''
       },
+      zhifutemp:{
+        AppId:'',
+        MchId:'',
+        ApiKey:'',
+        Code:''
+      },
+      Payment:'',
+      Switch:false,
+      showlist:false,
       rules: {
         Name: [{ required: true, message: '负责人必须填写！', trigger: 'blur' }],
         Agency: [{ required: true, message: '请选择地址或者暂无街道办！', trigger: 'blur' }],
@@ -211,6 +257,15 @@ export default {
         Corporate: [{ required: true, message: '公司名称必须填写！', trigger: 'blur' }],
         Phone: [{ required: true, trigger: ["blur"], validator: validPhone }],
         Address: [{ required: true, message: '地址必须填写！', trigger: 'blur' }],
+      },
+      zhifurules:{
+        AppId: [
+          { required: true, message: "AppId必须填写！", trigger: "blur" }
+        ],
+        MchId: [
+          { required: true, message: "MchId必须填写！", trigger: "blur" }
+        ],
+        ApiKey: [{ required: true, message: "ApiKey必须填写！", trigger: "blur" }]
       },
       StatusList:[],
       citys:[],
@@ -237,6 +292,62 @@ export default {
     this.citys=citys;
   },
   methods: {
+    changes(row,type){
+      var str = type==1?'开启':'关闭'
+      var data = this.$qs.stringify({ isswitch: type,Code:row.Code});
+      this.$confirm("确定要"+str+"支付吗？", "提示", {
+        dangerouslyUseHTMLString: true,
+        confirmButtonText: "确定",
+        cancelButtonText: "取消"
+      })
+        .then(() => {
+          request({
+            url: "Company/Update",
+            method: "post",
+            data
+          }).then(response => {
+            if (response.Status==1) {
+                this.$message({
+                    message: response.Msg,
+                    type: "success"
+                });
+                row.Switch=type;
+            }
+          });
+        })
+        .catch(() => {});
+    },
+    zhifu(row){
+      this.dialogzhifuVisible=true;
+      this.zhifutemp.AppId=row.AppId;
+      this.zhifutemp.MchId=row.MchId;
+      this.zhifutemp.ApiKey=row.ApiKey;
+      this.zhifutemp.Code=row.Code;
+      this.$nextTick(() => {
+        this.$refs['datazhifuForm'].clearValidate()
+      })
+    },
+    sub(){
+      this.$refs["datazhifuForm"].validate(valid => {
+        if (valid) {
+          var data = this.$qs.stringify(this.zhifutemp);
+          request({
+            url: "Company/SetPayment",
+            method: "post",
+            data
+          }).then(response => {
+            if (response.Status==1) {
+              this.$message({
+                message: response.Msg,
+                type: "success"
+              });          
+              this.dialogzhifuVisible=false;    
+              this.getList();   
+            }
+          });
+        }
+      });
+    },
     linktoadd(id){
       this.$router.push({
         path: "/wuye/wuye-list/wuye-renyuan",

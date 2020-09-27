@@ -53,6 +53,7 @@
       </el-table-column>
       <el-table-column label="负责人" align="center" prop="Name" width="100px"></el-table-column>  
       <el-table-column label="电话" align="center" prop="Phone" width="150px"></el-table-column>  
+      <el-table-column label="固话" align="center" prop="Fixed" width="150px"></el-table-column>  
       <!-- <el-table-column label="状态" align="center">
         <template slot-scope="scope">
          <span v-text="setstatus(scope.row.Status)" :class="'status'+scope.row.Status"></span>
@@ -75,6 +76,23 @@
           <el-button size="mini" type="primary" @click="linktoad(scope.row)">
             广告位
           </el-button> 
+          <div style="margin-top:5px">     
+            <el-button size="mini" type="primary" @click="linktonew(scope.row)">
+              新闻
+            </el-button>     
+            <el-button size="mini" type="primary" @click="linktonotice(scope.row)">
+              公告
+            </el-button>     
+            <el-button size="mini" type="primary" @click="linktoactive(scope.row)">
+              活动
+            </el-button>     
+            <el-button size="mini" type="primary" @click="linktoservice(scope.row)">
+              投诉
+            </el-button>     
+            <el-button size="mini" type="primary" @click="linktorange(scope.row)">
+              排行
+            </el-button> 
+          </div>       
           <!-- <el-button size="mini" v-if="scope.row.Status!=2" type="danger" @click="shangjai(scope.row,2,'解约')">
             解约
           </el-button> -->
@@ -135,6 +153,9 @@
         <el-form-item label="电话" prop="Phone">
           <el-input v-model="temp.Phone" placeholder="请填写电话"/>
         </el-form-item>
+        <el-form-item label="固话" prop="Fixed">
+          <el-input v-model="temp.Fixed" placeholder="请填写固话"/>
+        </el-form-item>
 
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -187,13 +208,15 @@ export default {
         Address: '',
         Agency: '',
         Name: '',
-        Phone: ''
+        Phone: '',
+        Fixed:''
       },
       rules: {
         Province: [{ required: true, message: '市区必须填写！', trigger: 'blur' }],
         Address: [{ required: true, message: '区域必须填写！', trigger: 'blur' }],
         Agency: [{ required: true, message: '街道办名称必须填写！', trigger: 'blur' }],
         Name: [{ required: true, message: '负责人必须填写！', trigger: 'blur' }],
+        Fixed: [{ required: true, message: '固定电话必须填写！', trigger: 'blur' }],
         Phone: [{ required: true, trigger: ["blur"], validator: validPhone }]
       },
       StatusList:[{Value:'0',Text:'启用'},{Value:'1',Text:'禁用'}],
@@ -212,6 +235,36 @@ export default {
     this.citys=citys;
   },
   methods: {
+    linktoactive(row){
+      this.$router.push({
+        path: "banshichu-list/activity-list",
+        query: { oid:row.Id }
+      });
+    },
+    linktorange(row){
+      this.$router.push({
+        path: "banshichu-list/range-list",
+        query: { oid:row.Id }
+      });
+    },
+    linktoservice(row){
+      this.$router.push({
+        path: "banshichu-list/advise",
+        query: { oid:row.Id }
+      });
+    },
+    linktonotice(row){
+      this.$router.push({
+        path: "banshichu-list/notice-list",
+        query: { oid:row.Id }
+      });
+    },
+    linktonew(row){
+      this.$router.push({
+        path: "banshichu-list/news-list",
+        query: { oid:row.Id }
+      });
+    },
     linktoad(row){
       this.$router.push({
         path: "/banshichu/banshichu-list/ads-list-banshi",
@@ -339,7 +392,8 @@ export default {
         Address: '',
         Agency: '',
         Name: '',
-        Phone: ''
+        Phone: '',
+        Fixed:''
       };
       this.iscreate=creat;
       this.dialogStatus = title;
@@ -356,6 +410,7 @@ export default {
         County: row.County.toString(),
         Address: row.Address,
         Agency: row.Agency,
+        Fixed:row.Fixed,
         Name:row.Name,
         Phone: row.Phone
       };
@@ -392,6 +447,7 @@ export default {
                       this.list[i].City=this.temp.City;
                       this.list[i].County=this.temp.County;
                       this.list[i].Agency=this.temp.Agency;
+                      this.list[i].Fixed=this.temp.Fixed;
                       this.list[i].Phone=this.temp.Phone;
                       this.list[i].Address=this.temp.Address;
                       break
