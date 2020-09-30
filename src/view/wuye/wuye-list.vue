@@ -109,7 +109,7 @@
     </el-table> 
     <el-dialog :title="dialogStatus" :visible.sync="dialogFormVisible" :close-on-click-modal="false" width="550px">
       <el-form ref="dataForm" :rules="rules" :model="temp" label-position="left" label-width="100px" style="width: 500px; margin-left:10px;">
-         <el-form-item label="选择地址" prop="Province">
+         <el-form-item label="选择地址" prop="Province" v-if="temp.Code==''">
             <el-select
               v-model="temp.Province"
               placeholder="省"
@@ -142,8 +142,17 @@
             </el-select> 
 
         </el-form-item>
-        <el-form-item label="街道办名字" prop="Agency">
-          <el-input v-model="temp.Agency" placeholder="街道办名字" readonly/>
+        <el-form-item label="街道办名字" prop="OId">
+           <el-select
+              v-model="temp.OId"
+              placeholder="选择街道办"
+              class="filter-item"
+              @change="getjiedao"
+              v-if="temp.Code==''"
+            >
+              <el-option v-if="temp.Code==''" v-for="item in banshichulist" :label="item.Agency" :value="item.Id" :key="item.Id"></el-option>
+            </el-select> 
+            <el-input v-if="temp.Code!=''" v-model="temp.Agency" placeholder="请填写小区名称" disabled />
         </el-form-item>
         <el-form-item label="小区名称" prop="CellName">
           <el-input v-model="temp.CellName" placeholder="请填写小区名称"/>
@@ -252,7 +261,7 @@ export default {
       showlist:false,
       rules: {
         Name: [{ required: true, message: '负责人必须填写！', trigger: 'blur' }],
-        Agency: [{ required: true, message: '请选择地址或者暂无街道办！', trigger: 'blur' }],
+        OId: [{ required: true, message: '请选择街道办！', trigger: 'blur' }],
         CellName: [{ required: true, message: '小区名称必须填写！', trigger: 'blur' }],
         Corporate: [{ required: true, message: '公司名称必须填写！', trigger: 'blur' }],
         Phone: [{ required: true, trigger: ["blur"], validator: validPhone }],
@@ -271,6 +280,7 @@ export default {
       citys:[],
       shi:[],
       qu:[],
+      banshichulist:[],
       quyu:{
         sheng:'',
         shi:'',
@@ -316,6 +326,13 @@ export default {
           });
         })
         .catch(() => {});
+    },
+    getjiedao(){
+      for(var i=0; i<this.banshichulist.length; i++){
+        if(this.banshichulist[i].Id==this.temp.OId){
+          this.temp.Agency=this.banshichulist[i].Agency;
+        }
+      }
     },
     zhifu(row){
       this.dialogzhifuVisible=true;
@@ -403,14 +420,7 @@ export default {
         params: {county:this.temp.County}
       }).then(response => {
         if (response.Status == 1) {
-          if(response.Model){
-            var _this=this;
-            this.temp.OId=response.Model.Id;
-            this.temp.Agency=response.Model.Agency;    
-          }else{
-            this.temp.OId='';
-            this.temp.Agency=''; 
-          }
+          this.banshichulist=response.List;         
         }
       });
     },

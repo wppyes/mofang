@@ -45,7 +45,8 @@
       <el-button class="filter-item" type="primary" icon="el-icon-search" @click="handleFilter">搜索</el-button>   
     </div>
     <el-table v-loading="listLoading" :data="list" border fit highlight-current-row>
-      <el-table-column label="街道办名字" align="center" prop="Agency" width="200px"></el-table-column>  
+      <el-table-column label="识别码" align="center" prop="UniqueId" width="100px"></el-table-column>  
+      <el-table-column label="街道办名字" align="center" prop="Agency" width="180px"></el-table-column>  
       <el-table-column label="地址" align="left" prop="Address" width="250px">
         <template slot-scope="scope">
          <span v-text="setdizhi(scope.row)"></span>{{scope.row.Address}}
@@ -438,6 +439,8 @@ export default {
             if(response.Status==1){
               if(this.iscreate){
                 this.temp.Status=0;
+                this.temp.Id=data.Id;
+                this.temp.UniqueId=data.UniqueId;
                 this.list.push(this.temp);            
               }else{
                  for (let i in this.list) {

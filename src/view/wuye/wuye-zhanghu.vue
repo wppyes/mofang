@@ -25,6 +25,7 @@
       <el-button class="filter-item" type="primary" icon="el-icon-search" @click="handleFilter">搜索</el-button> 
     </div>
     <el-table v-loading="listLoading" :data="list" border fit highlight-current-row>
+      <el-table-column label="识别码" prop="UniqueId" width="100px" align="center"></el-table-column>
       <el-table-column label="登录名" prop="Login" width="120px" align="center"></el-table-column>
       <el-table-column label="用户名" prop="Name" width="120px" align="center"></el-table-column>
       <el-table-column label="角色" prop="RoleName" width="120px" align="center"></el-table-column>

@@ -25,6 +25,7 @@
       <el-button class="filter-item" type="primary" icon="el-icon-search" @click="handleFilter">搜索</el-button> 
     </div>
     <el-table v-loading="listLoading" :data="list" border fit highlight-current-row>
+      <el-table-column label="识别码" prop="UniqueId" width="100px" align="center"></el-table-column>
       <el-table-column label="登录名" prop="Login" width="120px" align="center"></el-table-column>
       <el-table-column label="用户名" prop="Name" width="120px" align="center"></el-table-column>
       <el-table-column label="角色" prop="RoleName" width="120px" align="center"></el-table-column>
@@ -77,7 +78,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="街道办" prop="OId">
-          <el-select v-model="temp.OId" placeholder="请选择角色" :disabled="temp.Id>0">
+          <el-select v-model="temp.OId" placeholder="请选择角色" :disabled="temp.Id>0" @change="getuni">
             <el-option v-for="item in wuyelist" :label="item.Agency" :key="item.Id" :value="item.Id"></el-option>
           </el-select>
         </el-form-item>
@@ -106,7 +107,8 @@ export default {
         Login: "",
         Name: "",
         Role: '',
-        OId:''
+        OId:'',
+        UniqueId:''
       },
       listQuery: {
         //搜素分页处理
@@ -147,6 +149,14 @@ export default {
     this.getList()
   },
   methods: {
+    getuni(){
+      for(let i in this.wuyelist){
+        if(this.wuyelist[i].Code==this.temp.Code){
+          this.temp.UniqueId=this.wuyelist[i].UniqueId;
+          return;
+        }
+      }
+    },
     handleFilter() {
       this.listQuery.pageIndex = 1;
       this.getList();
@@ -171,7 +181,8 @@ export default {
         Login: row.Login,
         Name: row.Name,
         Role: row.Role,
-        OId: row.OId
+        OId: row.OId,
+        UniqueId:row.UniqueId
       };
       this.dialogStatus = title;
       this.dialogFormVisible = true;
@@ -260,7 +271,8 @@ export default {
         Login: "",
         Name: "",
         Role: '',
-        OId: ''
+        OId: '',
+        UniqueId:''
       };
       this.dialogStatus = title;
       this.dialogFormVisible = true;

@@ -20,7 +20,7 @@ export const constantRouterMap = [
     component: () => import('@/view/login/index'),
     hidden: true,
     meta: {
-      title: '登录'
+      title: '叮当优家管理系统'
     }
   }, 
    
