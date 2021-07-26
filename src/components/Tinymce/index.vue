@@ -146,10 +146,11 @@ export default {
             var keys=''   
             const isJPG = file.type === "image/jpeg";
             const isPNG = file.type === "image/png";
+            var tempkey=window.location.hash.split('/')[1];
             if(isJPG){
-              keys=new Date().getTime()+'.jpg'
+              keys=tempkey+'/editor/'+new Date().getTime()+'.jpg'
             } if(isPNG){
-              keys=new Date().getTime()+'.png'
+              keys=tempkey+'/editor/'+new Date().getTime()+'.png'
             }
             const key = keys;
             const token = _this.qiniu.token; //从服务器拿的并存在本地data里

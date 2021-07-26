@@ -7,6 +7,26 @@
         </el-button>
       </div>
       <el-select
+        v-model="listQuery.type"
+        placeholder="类型"
+        clearable
+        style="width: 150px"
+        class="filter-item"
+        @change="resetfenlei"
+      >
+        <el-option v-for="item in TypeList" :label="item.Text" :value="item.Value" :key="item.Value"></el-option>
+      </el-select>
+      <el-select  v-if="listQuery.type==2"
+          v-model="listQuery.difference"
+          placeholder="选择分类"
+          clearable
+          style="width: 150px"
+          class="filter-item"
+        >
+          <el-option v-for="item in DifferenceList" :label="item.Text" :value="item.Value" :key="item.Value"></el-option>
+        </el-select> 
+      <el-select
+        v-if="listQuery.type==1"
         v-model="temp.cate1"
         placeholder="一级分类"
         clearable
@@ -17,6 +37,7 @@
         <el-option v-for="item in CategoryList" v-if="item.ParentId==0" :label="item.Name" :value="item.Id" :key="item.Id"></el-option>
       </el-select>
       <el-select
+        v-if="listQuery.type==1"
         v-model="temp.cate2"
         placeholder="二级分类"
         clearable
@@ -43,17 +64,42 @@
         class="filter-item"
         clearable
       />  
+      <el-select
+        v-if="listQuery.type==1"
+          v-model="listQuery.receivingtype"
+          placeholder="选择邮寄方式"
+          clearable
+          style="width: 150px"
+          class="filter-item"
+        >
+          <el-option v-for="item in ReceivingList" :label="item.Text" :value="item.Value" :key="item.Value"></el-option>
+        </el-select>
       <el-button class="filter-item" type="primary" icon="el-icon-search" @click="handleFilter">搜索</el-button>   
     </div>
     <el-table v-loading="listLoading" :data="list" border fit highlight-current-row>
-      <el-table-column label="产品名称" align="left" prop="ProductName" width="700px"></el-table-column>
-      <el-table-column label="产品图片" align="center" width="100px">
+      <el-table-column label="类型" align="center" prop="Type" width="80px">
+        <template slot-scope="scope">
+         <span v-text="settype(scope.row.Type)" :class="'status'+scope.row.Type"></span>
+        </template>        
+      </el-table-column>
+      <el-table-column label="产品名称" align="left" prop="ProductName" width="500px"></el-table-column>
+      <el-table-column label="产品图片" align="center" width="80px">
         <template slot-scope="scope">
           <img :src="scope.row.ProductImg+'?imageView2/1/w/40/h/40'" class="img">
         </template>
       </el-table-column>  
       <el-table-column label="销量" align="center" prop="SaleNum" width="100px"></el-table-column>   
-      <el-table-column label="状态" align="center" width="100px">
+      <el-table-column label="邮寄方式" align="center" prop="ReceivingType" width="80px">
+        <template slot-scope="scope">
+         <span v-if="scope.row.Type==1" v-text="setyouji(scope.row.ReceivingType)" :class="'status'+scope.row.ReceivingType"></span>
+        </template> 
+      </el-table-column>
+      <el-table-column label="库存" align="left" prop="Specifications" width="250px">
+        <template slot-scope="scope">
+          <div v-for="item in scope.row.Spec">{{item.AttrName}} {{item.SpecName}}:{{item.Stock}}</div>
+        </template>
+      </el-table-column>   
+      <el-table-column label="状态" align="center" width="80px">
         <template slot-scope="scope">
          <span v-text="setstatus(scope.row.Status)" :class="'status'+scope.row.Status"></span>
         </template>
@@ -63,14 +109,20 @@
           <el-button size="mini" type="primary" @click="linktoadd(scope.row.Id)">
             <i class="el-icon-edit"></i>
           </el-button>
-          <el-button size="mini" type="primary" @click="shangjai(scope.row,1)" v-if="scope.row.Status!=1">
+          <el-button size="mini" type="primary" @click="shangjai(scope.row,1,'上架')" v-if="scope.row.Status!=1">
             上架
           </el-button>
-          <el-button size="mini" v-if="scope.row.Status==1" type="danger" @click="shangjai(scope.row,2)">
+          <el-button size="mini" v-if="scope.row.Status==1" type="danger" @click="shangjai(scope.row,2,'下架')">
             下架
+          </el-button>
+          <el-button size="mini" type="danger" @click="shangjai(scope.row,3,'删除')">
+            删除
           </el-button>
           <el-button size="mini" type="primary" @click="zhiding(scope.row)">
             置顶
+          </el-button>
+          <el-button size="mini" type="primary" @click="chakan(scope.row.Id)" v-if="scope.row.Type==1 && scope.row.Difference>1">
+            查看卡密
           </el-button>
         </template>
       </el-table-column>
@@ -102,14 +154,20 @@ export default {
         pageIndex: 1,
         pageSize: 15,
         categoryid:'',
-        status:''
+        status:'',
+        type:'',
+        difference:'',
+        receivingtype:''
       },
       temp:{
         cate1:'',
         cate2:''
       },
       CategoryList:[],
-      StatusList:[]
+      StatusList:[],
+      TypeList:[],
+      DifferenceList:[],
+      ReceivingList:[],
     };
   },
   created() {
@@ -122,6 +180,9 @@ export default {
       if (response.Status == 1) {
         this.CategoryList=response.CategoryList;
         this.StatusList=response.StatusList;
+        this.TypeList=response.TypeList;  
+        this.ReceivingList=response.ReceivingList;  
+        this.DifferenceList=response.DifferenceList;   
       }
     });
   },
@@ -131,6 +192,36 @@ export default {
     })
   },
   methods: {
+    chakan(id){
+      this.$router.push({
+        path: "/shop/product-list/kami",
+        query: { id:id }
+      });
+    },
+    settype(code){
+      for(let i in this.TypeList){
+        if(this.TypeList[i].Value == code){
+          return this.TypeList[i].Text;
+        }
+      }
+    },
+    setyouji(code){
+      for(let i in this.ReceivingList){
+        if(this.ReceivingList[i].Value == code){
+          return this.ReceivingList[i].Text;
+        }
+      }
+    },
+    resetfenlei(){
+      if(this.listQuery.type==2){
+        this.listQuery.receivingtype='';
+        this.listQuery.categoryid='';
+        this.temp.cate1='';
+        this.temp.cate2='';
+      }else{
+        this.listQuery.difference=''
+      }
+    },
     getList(){
       this.listLoading = true;
       request({
@@ -139,6 +230,11 @@ export default {
         params: this.listQuery
       }).then(response => {
         if (response.Status == 1) {
+          for(let i in response.List){
+            if(response.List[i].Specifications){
+              response.List[i].Spec=JSON.parse(response.List[i].Specifications)
+            }
+          }
           this.list = response.List;
           this.total = response.PageCount;
           this.listLoading = false;
@@ -172,8 +268,8 @@ export default {
         })
         .catch(() => {});
     },
-    shangjai(row,value) {
-      var str= value==2?'下架产品彻底消失，确定要下架该产品吗？':'确定要上架该产品吗？';
+    shangjai(row,value,title) {
+      var str= value==2?'下架产品彻底消失，确定要'+title+'该产品吗？':'确定要'+title+'该产品吗？';
       var data = this.$qs.stringify({ Id: row.Id,Status:value});
       this.$confirm(str, "提示", {
         dangerouslyUseHTMLString: true,
@@ -192,6 +288,10 @@ export default {
                 type: "success"
               });
               row.Status=value;
+              if(value==3){
+                 const index = this.list.indexOf(row)
+                this.list.splice(index, 1)
+              }
             }
           });
         })

@@ -88,7 +88,7 @@ export default {
   },
   created() {
     request({
-      url: "ORole/GetORoleList",
+      url: "CubeRole/GetCURoleList",
       method: "get",
       params: {}
     }).then(response => {
@@ -99,7 +99,7 @@ export default {
       }
     });
     request({
-      url: "OMenu/GetOMenusList",
+      url: "CubeMenu/GetCUMenusList",
       method: "get",
       params: {}
     }).then(response => {
@@ -122,7 +122,7 @@ export default {
         this.$refs["dataForm"].clearValidate();
       });
       request({
-        url: "ORole/GetORoleById",
+        url: "CubeRole/GetCURoleById",
         method: "get",
         params: { Id: row.Id }
       }).then(response => {        
@@ -147,7 +147,7 @@ export default {
       })
         .then(() => {
           request({
-            url: "ORole/DelORole",
+            url: "CubeRole/DelCURole",
             method: "post",
             data
           }).then(response => {
@@ -196,7 +196,7 @@ export default {
           };
           var data = this.$qs.stringify(param);
           request({
-            url: "ORole/CreatORole",
+            url: "CubeRole/CreatCURole",
             method: "post",
             data
           }).then(response => {

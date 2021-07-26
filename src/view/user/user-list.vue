@@ -21,16 +21,18 @@
           <img :src="scope.row.headimgUrl+'?imageView2/1/w/40/h/40'" class="img">
         </template>
       </el-table-column>  
-      <el-table-column label="昵称" align="left" prop="NickName" width="180px"></el-table-column>
-      <el-table-column label="性别" align="center" prop="Sex" width="100px">
+      <el-table-column label="昵称" align="left" prop="NickName" width="150px"></el-table-column>
+      <el-table-column label="性别" align="center" prop="Sex" width="60px">
         <template slot-scope="scope">
-          {{scope.row.Sex==1?'男':'女'}}
+          {{scope.row.Sex==1?'男':scope.row.Sex==0?'未知':'女'}}
         </template>
       </el-table-column>    
       <el-table-column label="姓名" align="center" prop="Name" width="100px"></el-table-column>
-      <el-table-column label="身份证号" align="center" prop="CardNo"></el-table-column>
-      <el-table-column label="手机号" align="center" prop="Phone" width="150px"></el-table-column>
-      <el-table-column label="积分" align="center" prop="Balance" width="150px"></el-table-column>
+      <el-table-column label="身份证号" align="center" prop="CardNo" width="210px"></el-table-column>
+      <el-table-column label="手机号" align="center" prop="Phone" width="110px"></el-table-column>
+      <el-table-column label="积分" align="center" prop="Balance" width="100px"></el-table-column>
+      <el-table-column label="注册时间" align="center" prop="CreatedStr" width="170px"></el-table-column>
+      <el-table-column label="停留时间" align="center" prop="LastTimeStr" width="170px"></el-table-column>
       <el-table-column label="操作" align="center">
         <template slot-scope="scope">
           <el-button size="mini" type="primary" @click="showjifen(scope.row)">
@@ -44,10 +46,10 @@
           </el-button>
         </template>
       </el-table-column>   
-    </el-table> 
-    <pagination
-      small
-      layout="prev, pager, next"
+    </el-table>     
+      <pagination
+      class="pagination-container1"
+      v-show="total>0"
       :total="total"
       :page.sync="listQuery.pageIndex"
       :limit.sync="listQuery.pageSize"
@@ -70,15 +72,17 @@
     <el-dialog :title="titles" :visible.sync="dialogwuyeVisible" :close-on-click-modal="false" width="550px">
       
     </el-dialog>
-    <el-dialog :title="titles" :visible.sync="dialogjifenVisible" :close-on-click-modal="false" width="550px">
+    <el-dialog :title="titles" :visible.sync="dialogjifenVisible" :close-on-click-modal="false" width="850px">
       <el-table v-loading="listLoadingjifen" :data="listjifen" border fit highlight-current-row>
         <el-table-column label="类型" align="center" prop="TypeStr"></el-table-column>   
+        <el-table-column label="来源" align="center" prop="ClassifyStr"></el-table-column>   
         <el-table-column label="金额" align="center" prop="Amount">
           <template slot-scope="scope">
           <span :class="'status'+scope.row.Type">{{scope.row.Type==1?'+':'-'}}</span>{{scope.row.Amount}}
         </template>
         </el-table-column>
         <el-table-column label="余额" align="center" prop="Balance"></el-table-column>
+        <el-table-column label="备注" align="center" prop="Remark"></el-table-column>   
         <el-table-column label="时间" align="center" prop="CreatedStr" width="180px"></el-table-column>
       </el-table> 
       <pagination
@@ -88,6 +92,7 @@
         :limit.sync="jifen.pageSize"
         @pagination="getjifenList"
       />
+
     </el-dialog>
     
     <el-dialog title="新增用户" :visible.sync="dialogFormVisible" :close-on-click-modal="false" width="570px">
@@ -132,7 +137,7 @@ export default {
         //搜素分页处理
         name:'',
         pageIndex: 1,
-        pageSize: 15
+        pageSize: 9
       },
       jifen:{
         pageIndex: 1,

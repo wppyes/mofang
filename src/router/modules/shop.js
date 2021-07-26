@@ -45,6 +45,13 @@ const shopRouter = {
       }
     },
     {
+      path: 'product-list/kami',
+      component: () => import('@/view/shop/kami'),
+      meta: {
+        title: '卡密管理'
+      }
+    },
+    {
       path: 'product-tuijian',
       component: () => import('@/view/shop/product-tuijian'),
       meta: {

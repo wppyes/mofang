@@ -87,6 +87,11 @@
          </div>
         </template>
       </el-table-column>  
+      <el-table-column label="物业" align="center" width="60px">
+        <template slot-scope="scope">
+         <span :class="scope.row.IsProperty==0?'status2':'status0'">{{scope.row.IsProperty==1?'有':'无'}}</span>
+        </template>
+      </el-table-column>  
       <el-table-column label="操作" align="center">
         <template slot-scope="scope">
           <el-button size="mini" type="primary" @click="handleditor(scope.row,'修改物业',false)">
@@ -142,7 +147,7 @@
             </el-select> 
 
         </el-form-item>
-        <el-form-item label="街道办名字" prop="OId">
+        <el-form-item label="街道办" prop="OId">
            <el-select
               v-model="temp.OId"
               placeholder="选择街道办"
@@ -153,6 +158,15 @@
               <el-option v-if="temp.Code==''" v-for="item in banshichulist" :label="item.Agency" :value="item.Id" :key="item.Id"></el-option>
             </el-select> 
             <el-input v-if="temp.Code!=''" v-model="temp.Agency" placeholder="请填写小区名称" disabled />
+        </el-form-item>
+        <el-form-item label="街道办社区" prop="OCId">
+           <el-select
+              v-model="temp.OCId"
+              placeholder="选择街道办社区"
+              class="filter-item"
+            >
+              <el-option v-for="item in shequlist" :label="item.Name" :value="item.Id" :key="item.Id"></el-option>
+            </el-select> 
         </el-form-item>
         <el-form-item label="小区名称" prop="CellName">
           <el-input v-model="temp.CellName" placeholder="请填写小区名称"/>
@@ -168,6 +182,15 @@
         </el-form-item>
         <el-form-item label="地址" prop="Address">
           <el-input v-model="temp.Address" placeholder="请填写地址"/>
+        </el-form-item>
+        <el-form-item label="物业" prop="IsProperty">
+          <el-switch
+            v-model="temp.IsProperty"
+            active-color="#409EFF"
+            inactive-color="#eee"
+            active-text="是"
+            inactive-text="否">
+          </el-switch>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -248,8 +271,11 @@ export default {
         City: '',
         County: '',
         OId:'',
-        Agency:''
+        Agency:'', 
+        OCId:'',       
+        IsProperty:false
       },
+      shequlist:[],
       zhifutemp:{
         AppId:'',
         MchId:'',
@@ -302,6 +328,17 @@ export default {
     this.citys=citys;
   },
   methods: {
+    getshequ(){         
+      request({
+        url: "Company/GetCommunityList",
+        method: "get",
+        params: {oid:this.temp.OId}
+      }).then(response => {
+        if (response.Status == 1) {
+          this.shequlist=response.List;         
+        }
+      });
+    },
     changes(row,type){
       var str = type==1?'开启':'关闭'
       var data = this.$qs.stringify({ isswitch: type,Code:row.Code});
@@ -332,7 +369,9 @@ export default {
         if(this.banshichulist[i].Id==this.temp.OId){
           this.temp.Agency=this.banshichulist[i].Agency;
         }
-      }
+      }      
+      this.temp.OCId='';
+      this.getshequ();
     },
     zhifu(row){
       this.dialogzhifuVisible=true;
@@ -413,7 +452,9 @@ export default {
         }
       }
     },
-    getbanshi(){      
+    getbanshi(){     
+      this.temp.OId='';
+      this.temp.OCId=''; 
       request({
         url: "Company/GetOffice",
         method: "get",
@@ -479,7 +520,9 @@ export default {
         City: '',
         County: '',
         OId:'',
-        Agency:''
+        Agency:'',       
+        OCId:'', 
+        IsProperty:false
       };
       this.iscreate=creat;
       this.dialogStatus = title;
@@ -498,10 +541,13 @@ export default {
         Address: row.Address,
         OId:row.OId,
         Agency:row.Agency,
+        OCId:row.OCId == 0?'':row.OCId,
         Province:'',
         City: '',
         County: '',
+        IsProperty:row.IsProperty==1?true:false
       };
+      this.getshequ();
       this.dialogStatus = title;
       this.dialogFormVisible = true;
       this.iscreate=creat;
@@ -520,7 +566,9 @@ export default {
         Province:this.temp.Province,
         City:this.temp.City,
         County:this.temp.County,
-        OId:this.temp.OId
+        OId:this.temp.OId,
+        OCId:this.temp.OCId,
+        IsProperty:this.temp.IsProperty?1:0
       }
       var data=this.$qs.stringify(temps);
       this.$refs['dataForm'].validate((valid) => {
@@ -548,6 +596,8 @@ export default {
                       this.list[i].City=this.temp.City;
                       this.list[i].County=this.temp.County;
                       this.list[i].OId=this.temp.OId;
+                      this.list[i].OCId=this.temp.OCId;
+                      this.list[i].IsProperty=this.temp.IsProperty;
                       break
                     }
                   }             

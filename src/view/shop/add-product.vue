@@ -12,14 +12,25 @@
       label-position="left"
       label-width="150px"
       style="width: 1100px; margin-left:20px;"
-    >               
+    >       
+      <!-- <el-form-item label="类型" prop="Type" style="width:500px">
+        <el-select
+          v-model="temp.Type"
+          placeholder="选择类型"
+          clearable
+          style="width: 150px"
+          class="filter-item"
+        >
+          <el-option v-for="item in TypeList" :label="item.Text" :value="item.Value" :key="item.Value"></el-option>
+        </el-select>
+      </el-form-item>  -->    
       <el-form-item label="分类" prop="CategoryId" style="width:500px">
         <el-select
           v-model="tempca.cate1"
           placeholder="一级分类"
           clearable
           style="width: 150px"
-          @change="tempca.cate2='';temp.CategoryId=tempca.cate1"
+          @change="gettypes"
         >
           <el-option v-for="item in CategoryList" v-if="item.ParentId==0" :label="item.Name" :value="item.Id" :key="item.Id"></el-option>
         </el-select>
@@ -33,7 +44,19 @@
         >
           <el-option v-for="item in CategoryList" v-if="item.ParentId==tempca.cate1" :label="item.Name" :value="item.Id" :key="item.Id"></el-option>
         </el-select>
-      </el-form-item>  
+      </el-form-item> 
+      
+      <el-form-item label="虚拟分类" prop="Difference" style="width:500px" v-if="temp.Type==2">
+        <el-select
+          v-model="temp.Difference"
+          placeholder="选择类型"
+          clearable
+          style="width: 150px"
+          class="filter-item"
+        >
+          <el-option v-for="item in DifferenceList" :label="item.Text" :value="item.Value" :key="item.Value"></el-option>
+        </el-select>
+      </el-form-item>      
       <el-form-item label="单位" prop="CompanyId" style="width:500px">
         <el-select
           v-model="temp.CompanyId"
@@ -45,6 +68,17 @@
           <el-option v-for="item in CompayList" :label="item.Name" :value="item.Id" :key="item.Id"></el-option>
         </el-select>
       </el-form-item>
+      <el-form-item label="邮寄" prop="ReceivingType" style="width:500px" v-if="temp.Type==1">
+        <el-select
+          v-model="temp.ReceivingType"
+          placeholder="选择邮寄方式"
+          clearable
+          style="width: 150px"
+          class="filter-item"
+        >
+          <el-option v-for="item in ReceivingList" :label="item.Text" :value="item.Value" :key="item.Value"></el-option>
+        </el-select>
+      </el-form-item> 
       <el-form-item label="产品名称" prop="ProductName" style="width:500px">
         <el-input v-model="temp.ProductName" placeholder="请填写产品名称" />
       </el-form-item>
@@ -165,6 +199,9 @@ export default {
     return {
       temp: {
         Id: 0,
+        Type:'',
+        Difference:'',
+        ReceivingType:'',
         CategoryId:'',
         CompanyId:'',
         ProductName: "", //名称
@@ -183,6 +220,9 @@ export default {
       editor: null,	  
       tinymceFlag:1,
       rules: {
+        Type: [{ required: true, message: "选择类型！", trigger: "blur" }],
+        Difference: [{ required: true, message: "选择分类！", trigger: "blur" }],
+        ReceivingType: [{ required: true, message: "选择邮寄方式！", trigger: "blur" }],
         CategoryId: [{ required: true, message: "选择分类！", trigger: "blur" }],
         CompanyId: [{ required: true, message: "选择单位！", trigger: "blur" }],
         ProductName: [
@@ -202,6 +242,9 @@ export default {
         cate2:''
       },
       CategoryList:[],
+      TypeList:[],
+      DifferenceList:[],
+      ReceivingList:[],
       CompayList:[],
       temparr:[1,1,1],
       PriceType:[]    
@@ -229,6 +272,16 @@ export default {
     this.getproduct();
   },
   methods: {
+    gettypes(){
+      this.tempca.cate2='';
+      this.temp.CategoryId=this.tempca.cate1;
+      for(let i in this.CategoryList){
+        if(this.CategoryList[i].Id == this.temp.CategoryId){
+          this.temp.Type=this.CategoryList[i].Type;
+          return
+        }
+      }
+    },
     getproduct() {
       request({
         url: "Product/GetProduct",
@@ -241,13 +294,19 @@ export default {
             for(var i in response.CategoryList){
               if(response.CategoryList[i].Id==this.temp.CategoryId){
                 if(response.CategoryList[i].ParentId==0){
-                  this.tempca.cate1=response.Model.CategoryId;
                 }else{
                   this.tempca.cate2=response.Model.CategoryId;
                   this.tempca.cate1=response.CategoryList[i].ParentId;
                 }
                 break;
               }
+            }
+            this.temp.Type = response.Model.Type.toString();
+            if(response.Model.Difference){
+              this.temp.Difference = response.Model.Difference.toString();
+            }
+            if(response.Model.ReceivingType){
+              this.temp.ReceivingType = response.Model.ReceivingType.toString();
             }
             this.temp.CompanyId = response.Model.CompanyId;
             this.temp.ProductName = response.Model.ProductName; 
@@ -286,7 +345,10 @@ export default {
           this.$refs.editor.setContent(response.Model.ProductDetails);  
           this.CategoryList=response.CategoryList;
           this.CompayList=response.CompayList;
-          this.PriceType=response.PriceType;          
+          this.PriceType=response.PriceType;    
+          this.TypeList=response.TypeList;  
+          this.ReceivingList=response.ReceivingList;  
+          this.DifferenceList=response.DifferenceList;        
           this.$nextTick(() => {
             this.$refs['dataForm'].clearValidate()
           })
@@ -556,11 +618,10 @@ export default {
           };
           this.temp.Specifications[i].Stock=parseInt(this.temp.Specifications[i].Stock);
           this.temp.Specifications[i].PriceType=parseInt(this.temp.Specifications[i].PriceType);
-          this.temp.Specifications[i].CashPrice=parseInt(this.temp.Specifications[i].CashPrice);
+          this.temp.Specifications[i].CashPrice=parseFloat(this.temp.Specifications[i].CashPrice);
           this.temp.Specifications[i].IntegralPrice=parseInt(this.temp.Specifications[i].IntegralPrice);
         }
       }     
-
       if(this.temp.ShowType==0 && !reg1.test(this.temp.ShowIntegralPrice)){
         this.$message({
               message: '请输入正确的积分数量！',
@@ -582,7 +643,8 @@ export default {
           });
           return;
       }
-      this.$refs["dataForm"].validate(valid => {
+  
+     this.$refs["dataForm"].validate(valid => {
         if (valid) {
           this.subadd();
         }
@@ -591,6 +653,9 @@ export default {
     subadd(){    
       var param={
         Id: this.temp.Id,
+        Type:this.temp.Type,
+        Difference:this.temp.Difference,
+        ReceivingType:this.temp.ReceivingType,
         CategoryId:this.temp.CategoryId,
         CompanyId:this.temp.CompanyId,
         ProductName:this.temp.ProductName, //名称

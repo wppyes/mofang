@@ -118,6 +118,13 @@ const banshichuRouter = {
         title: '排行榜列表'
       }
     },
+    {
+      path: 'banshichu-list/shequ-banshi',
+      component: () => import('@/view/banshichu/shequ-banshi'),
+      meta: {
+        title: '社区'
+      }
+    },
   ]
 }
 export default banshichuRouter

@@ -40,7 +40,7 @@
         <template slot-scope="scope">
           <el-button size="mini" type="danger" v-if="scope.row.Status==0" @click="updatastatus(scope.row)">禁用</el-button>
           <el-button size="mini" type="primary" v-if="scope.row.Status==1" @click="updatastatus(scope.row)">启用</el-button>
-          <el-button size="mini" type="success" @click="reset(scope.row)">重置</el-button>
+          <el-button size="mini" type="success" @click="reset(scope.row)">重置密码</el-button>
           <el-button size="mini" type="primary" @click="handleditor(scope.row,'修改用户',false)">
             <i class="el-icon-edit"></i>
           </el-button>

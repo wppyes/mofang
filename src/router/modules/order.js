@@ -16,6 +16,13 @@ const orderRouter = {
         title: '订单列表'
       }
     },
+    {
+      path: 'postgood',
+      component: () => import('@/view/order/postgood'),
+      meta: {
+        title: '物流管理'
+      }
+    },
   ]
 }
 export default orderRouter

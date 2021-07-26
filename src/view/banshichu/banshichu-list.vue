@@ -92,6 +92,9 @@
             </el-button>     
             <el-button size="mini" type="primary" @click="linktorange(scope.row)">
               排行
+            </el-button>    
+            <el-button size="mini" type="primary" @click="linktoshenqu(scope.row)">
+              社区
             </el-button> 
           </div>       
           <!-- <el-button size="mini" v-if="scope.row.Status!=2" type="danger" @click="shangjai(scope.row,2,'解约')">
@@ -245,6 +248,12 @@ export default {
     linktorange(row){
       this.$router.push({
         path: "banshichu-list/range-list",
+        query: { oid:row.Id }
+      });
+    },
+    linktoshenqu(row){
+      this.$router.push({
+        path: "banshichu-list/shequ-banshi",
         query: { oid:row.Id }
       });
     },

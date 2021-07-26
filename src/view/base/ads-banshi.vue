@@ -1,13 +1,9 @@
 <template>
   <div class="bannerlist boxright">
-    
-     <el-tabs v-model="classify" type="card" @tab-click="getList()">
-        <el-tab-pane v-for="item in TypeList" :label="item.Text" :name="item.Value" :key="item.Value"></el-tab-pane>
-      </el-tabs>
     <div class="filter-container">
       <div class="filter-item" style="margin-right:20px;">
-        <el-button type="primary" class="filter-item" @click="handleadd('增加首页导航',true)">
-          <i class="el-icon-circle-plus"></i> 增加首页导航
+        <el-button type="primary" class="filter-item" @click="handleadd('增加广告位',true)">
+          <i class="el-icon-circle-plus"></i> 增加广告位
         </el-button>
       </div>
     </div>
@@ -18,8 +14,8 @@
         </template>
       </el-table-column>
       <el-table-column label="跳转" align="center" prop="JumpTypeStr"></el-table-column>
+      <el-table-column label="分类" align="center" prop="SiteTypeStr"></el-table-column>
       <el-table-column label="类型" align="center" prop="TypeStr"></el-table-column>
-      <el-table-column label="标题" align="center" prop="Title"></el-table-column>
       <el-table-column label="排序" align="center">
         <template slot-scope="scope">
           <span @click="sort(scope.row,scope.$index,-1)" :class="scope.$index==0?'disabled':''">
@@ -35,7 +31,7 @@
       </el-table-column>
       <el-table-column label="操作" align="center">
         <template slot-scope="scope">
-          <el-button size="mini" type="primary" @click="handleditor(scope.row,'修改首页导航',false)">
+          <el-button size="mini" type="primary" @click="handleditor(scope.row,'修改广告位',false)">
             <i class="el-icon-edit"></i>
           </el-button>
           <el-button size="mini" type="danger" @click="handledel(scope.row)">
@@ -53,16 +49,18 @@
         label-width="100px"
         style="width: 500px; margin-left:50px;"
       >
-        <el-form-item label="标题" prop="Title">
-          <el-input v-model="temp.Title" placeholder="请填写标题"/>
+      
+        <el-form-item label="分类" prop="SiteType">
+          <el-select v-model="temp.SiteType" placeholder="请选择分类">
+            <el-option v-for="item in SiteTypeList" :label="item.Text" :key="item.Value" :value="item.Value"></el-option>
+          </el-select>
         </el-form-item>
         <el-form-item label="链接设置" prop="NavId">
           <el-select v-model="temp.NavId" placeholder="请选择链接类型" @change="isgetlist(false)">
             <el-option v-for="item in ConfigList" :label="item.Name" :key="item.Id" :value="item.Id"></el-option>
           </el-select>
         </el-form-item>
-
-        <!-- <div v-show="temp.NavId==2">
+        <div v-show="temp.NavId==2">
           <el-form-item label="门店选择" prop="RelId">       
             <div class="filter-container">
               <div class="filter-item">
@@ -126,20 +124,14 @@
             :limit.sync="listQuery1.sum"
             @pagination="getwenzhang"
           />
-        </div> -->
-        <el-form-item label="跳转地址" prop="Link" v-show="temp.NavId==1">
+        </div>
+        <el-form-item label="跳转地址" prop="Link" v-show="temp.NavId==3">
           <el-input v-model="temp.Link" placeholder="请填写跳转地址"/>
         </el-form-item>
-        <el-form-item label="图片：" prop="Images">
+        <el-form-item label="封面图" prop="Images">
           <div class="video">
             <Uploadimgs v-model="temp.Images" ref="upLoadimg"></Uploadimgs>
-            <div class="chicun">尺寸：100*100</div>  
-          </div>
-        </el-form-item>
-        <el-form-item label="选中图片：" prop="Picture" v-if="classify==1">
-          <div class="video">
-            <Uploadimgs v-model="temp.Picture" ref="upLoadimg"></Uploadimgs>
-            <div class="chicun">尺寸：100*100</div>  
+            <div class="chicun">尺寸：690*224</div>  
           </div>
         </el-form-item>
       </el-form>
@@ -179,18 +171,17 @@ export default {
       iscreate:true,//是否是增加
       temp:{
         Id:0,
-        Type:'',
+        Type:0,
         JumpType:'',
         Images:'',
-        Picture:'',
         Link:'',
         NavId:'',
-        Title:'',
         RelId:0,
-        Mold:0
+        SiteType:'',
+        Mold:1,
+        OId:0
       }, 
-      classify:'',
-      TypeList:[],
+      TabList:[],
       listQuery: {
         //搜素分页处理
         str: "",
@@ -205,35 +196,28 @@ export default {
         type:3
       },
       ConfigList:[],
-      rules:{   
-        Title: [
-          { required: true, message: "标题必须填写！", trigger: "blur" }
+      SiteTypeList:[],
+      rules:{  
+        SiteType: [
+          { required: true, message: "请选择类型！", trigger: "blur" }
+        ],
+        Type: [
+          { required: true, message: "请选择类型！", trigger: "blur" }
         ],
         Images: [
-          { required: true, message: "图片必须上传！", trigger: "blur" }
-        ],
-        Picture: [
           { required: true, message: "图片必须上传！", trigger: "blur" }
         ],
         NavId:[
           { required: true, message: "请选择链接设置", trigger: "blur" }
         ],
-        TypeList:[]
+        // RelId:[
+        //   { required: true, validator: validnum, trigger: "blur" }
+        // ],
       },
     };
   },
   created() {
-    request({
-        url: "CNavigation/GetDDL",
-        method: "get",
-        params: {}
-      }).then(response => {
-        if (response.Status == 1) {
-          this.TypeList=response.List
-          this.classify=response.List[0].Value;
-          this.getList();
-        }
-      });
+    this.getList();
   },
   methods: {
     getwenzhang(){
@@ -268,25 +252,23 @@ export default {
       if(!flag){
         this.temp.RelId='';
       }
-      // if(this.temp.NavId==2){
-      //   this.listQuery.str='';
-      //   this.listQuery.page = 1;
-      //   this.getmendian();
-      // };        
-      // if(this.temp.NavId==9){
-      //   this.listQuery1.title='';
-      //   this.listQuery1.page = 1;
-      //   this.getwenzhang();
-      // };  
+      if(this.temp.NavId==2){
+        this.listQuery.str='';
+        this.listQuery.page = 1;
+        this.getmendian();
+      };        
+      if(this.temp.NavId==9){
+        this.listQuery1.title='';
+        this.listQuery1.page = 1;
+        this.getwenzhang();
+      };    
       for(let i in this.ConfigList){
         if(this.ConfigList[i].Id==this.temp.NavId){
-          this.temp.JumpType=this.ConfigList[i].JumpType;          
-          if(this.temp.Link=='/'){
-            this.temp.Link=this.ConfigList[i].Url;
-          }          
+          this.temp.JumpType=this.ConfigList[i].JumpType;
+          this.temp.Link=this.ConfigList[i].Url;
           this.temp.Type=this.ConfigList[i].Type;
         }
-      }    
+      }      
     },
     handleFilter() {
       this.listQuery.page = 1;
@@ -295,13 +277,14 @@ export default {
     getList() {
       this.listLoading = true;
       request({
-        url: "CNavigation/GetNavigationList",
+        url: "OAds/GetAdsList",
         method: "get",
-        params: {mold:0,classify:this.classify}
+        params: {mold:1}
       }).then(response => {
         if (response.Status == 1) {
           this.list = response.List;
-          this.ConfigList=response.ConfigList;
+          this.ConfigList = response.ConfigList;
+          this.SiteTypeList = response.SiteTypeList;
           this.listLoading = false;
         }
       });
@@ -310,8 +293,7 @@ export default {
       this.temp.Id=0;
       this.temp.JumpType='';
       this.temp.Images='';
-      this.temp.Picture='';
-      this.temp.Title='';
+      this.temp.SiteType=''
       this.temp.Link='';
       this.temp.NavId='';
       this.temp.RelId='';
@@ -326,9 +308,8 @@ export default {
     handleditor(row, title, creat) {
       this.temp.Id=row.Id;
       this.temp.JumpType=row.JumpType;
+      this.temp.SiteType=row.SiteType.toString();
       this.temp.Images=row.Images;
-      this.temp.Picture=row.Picture;
-      this.temp.Title=row.Title;
       this.temp.Link=row.Link;
       this.temp.NavId=row.NavId;
       row.RelId==0?this.temp.RelId='':this.temp.RelId=parseInt(row.RelId);
@@ -345,12 +326,12 @@ export default {
       this.getwenzhang();
     }, 
     createData(){  
-      // if(this.temp.JumpType!=1 || this.temp.JumpType==1 && this.temp.NavId==8){        
+      // if(this.temp.JumpType!=1 || this.temp.JumpType==1 && this.temp.NavId==8 || this.temp.NavId==10){        
       //   this.temp.RelId='100';
       // }
       this.$refs["dataForm"].validate(valid => {
         if (valid) {                
-          // if(this.temp.JumpType!=1 || this.temp.JumpType==1 && this.temp.NavId==8){        
+          // if(this.temp.JumpType!=1 || this.temp.JumpType==1 && this.temp.NavId==8 || this.temp.NavId==10){        
           //   this.temp.RelId=0;
           // }
           var param={
@@ -358,17 +339,16 @@ export default {
               Type:this.temp.Type,
               JumpType:this.temp.JumpType,
               Images:this.temp.Images,
-              Picture:this.temp.Picture,
-              Title:this.temp.Title,
               NavId:this.temp.NavId,
               RelId:this.temp.RelId,
               Link:this.temp.Link,
-              Mold:0,
-              Classify:this.classify
+              SiteType:this.temp.SiteType,
+              OId:0,
+              Mold:1
           };     
           var data = this.$qs.stringify(param);
           request({
-            url: "CNavigation/SetNavigation",
+            url: "OAds/SetAds",
             method: "post",
             data
           }).then(response => {
@@ -386,14 +366,14 @@ export default {
     },    
     handledel(row) {
       var data = this.$qs.stringify({ Id: row.Id, Type:this.temp.Type });
-      this.$confirm("确定要删除首页导航吗？", "提示", {
+      this.$confirm("确定要删除广告位吗？", "提示", {
         dangerouslyUseHTMLString: true,
         confirmButtonText: "确定",
         cancelButtonText: "取消"
       })
         .then(() => {
           request({
-            url: "CNavigation/Del",
+            url: "OAds/Del",
             method: "post",
             data
           }).then(response => {
@@ -426,7 +406,7 @@ export default {
         id2 = arr1[index + type].Id; //当前id为 id1,替换id为id2
       var data = this.$qs.stringify({ id1: id1, id2: id2 });
       request({
-        url: "CNavigation/Sort",
+        url: "OAds/Sort",
         method: "post",
         data
       }).then(response => {
@@ -456,9 +436,9 @@ export default {
     }
     
   }
-
   .chicun {
     color: #f00;
   }
+
 }
 </style>

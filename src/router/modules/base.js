@@ -17,6 +17,13 @@ const baseRouter = {
       }
     },
     {
+      path: 'zhifu',
+      component: () => import('@/view/base/zhifu'),
+      meta: {
+        title: '商城支付配置'
+      }
+    },
+    {
       path: 'banner-list',
       component: () => import('@/view/base/banner-list'),
       meta: {
@@ -35,6 +42,13 @@ const baseRouter = {
       component: () => import('@/view/base/navconfig'),
       meta: {
         title: '总栏目(商城)'
+      }
+    },
+    {
+      path: 'meiju',
+      component: () => import('@/view/base/meiju'),
+      meta: {
+        title: '枚举配置'
       }
     },
     {
@@ -70,6 +84,48 @@ const baseRouter = {
       component: () => import('@/view/base/navconfig-banshi'),
       meta: {
         title: '总栏目(办事处)'
+      }
+    },
+    {
+      path: 'navconfig-wuye',
+      component: () => import('@/view/base/navconfig-wuye'),
+      meta: {
+        title: '总栏目(物业)'
+      }
+    },
+    {
+      path: 'ads-banshi',
+      component: () => import('@/view/base/ads-banshi'),
+      meta: {
+        title: '广告位(办事处)'
+      }
+    },
+    {
+      path: 'shuoming',
+      component: () => import('@/view/base/shuoming'),
+      meta: {
+        title: '系统说明'
+      }
+    },
+    {
+      path: 'share',
+      component: () => import('@/view/base/share'),
+      meta: {
+        title: '微信分享'
+      }
+    },
+    {
+      path: 'base-role',
+      component: () => import('@/view/base/base-role'),
+      meta: {
+        title: '小程序角色管理'
+      }
+    },
+    {
+      path: 'base-menu',
+      component: () => import('@/view/base/base-menu'),
+      meta: {
+        title: '小程序菜单管理'
       }
     },
   ]

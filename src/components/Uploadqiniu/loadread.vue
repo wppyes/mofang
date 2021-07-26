@@ -57,6 +57,19 @@ export default {
   created() {
     this.getTocken();
   },
+  mounted(){
+    if(!this.value){
+      return
+    }
+  let arr=JSON.parse(this.value);
+      this.piclist=[];
+      for(let i in arr){
+        let param={
+           url:arr[i]
+        };
+        this.piclist.push(param)
+      }
+  },
   methods: {
     getTocken() {
        request({
@@ -88,10 +101,11 @@ export default {
       var keys=''   
       const isJPG = param.file.type === "image/jpeg";
       const isPNG = param.file.type === "image/png";
+      var tempkey=window.location.hash.split('/')[1];
       if(isJPG){
-        keys=new Date().getTime()+'.jpg'
+        keys=tempkey+'/pic/'+new Date().getTime()+'.jpg'
       } if(isPNG){
-        keys=new Date().getTime()+'.png'
+        keys=tempkey+'/pic/'+new Date().getTime()+'.png'
       }
       const key = keys;
       const token = this.qiniu.token; //从服务器拿的并存在本地data里

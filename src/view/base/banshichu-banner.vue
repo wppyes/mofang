@@ -1,5 +1,8 @@
 <template>
   <div class="bannerlist boxright">   
+    <el-tabs v-model="bannerqu.mold" type="card" @tab-click="temp.Mold=bannerqu.mold;getList();getmodel()">
+      <el-tab-pane v-for="item in TypeList" :label="item.Text" :name="item.Value" :key="item.Value"></el-tab-pane>
+    </el-tabs>
     <div class="filter-container">
       <div class="filter-item" style="margin-right:20px;">
         <el-button type="primary" class="filter-item" @click="handleadd('增加轮播图',true)">
@@ -293,7 +296,7 @@ export default {
       request({
         url: "CBanner/GetBannerSwitch",
         method: "get",
-        params: {}
+        params: {type:this.bannerqu.mold}
       }).then(response => {
         if (response.Status == 1) {
           this.Model = response.Model;
@@ -356,7 +359,7 @@ export default {
           NavId:this.temp.NavId,
           RelId:this.temp.RelId,
           Link:this.temp.Link,
-          Mold:0,
+          Mold:this.temp.Mold,
           OId:this.temp.OId
       };     
       var data = this.$qs.stringify(param);
@@ -378,7 +381,7 @@ export default {
     }, 
     shangjai(value,title) {
       var str= '要'+title+'轮播图吗？';
-      var data = this.$qs.stringify({isswitch:value});
+      var data = this.$qs.stringify({isswitch:value,type:this.bannerqu.mold});
       this.$confirm(str, "提示", {
         dangerouslyUseHTMLString: true,
         confirmButtonText: "确定",

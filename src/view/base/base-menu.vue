@@ -1,37 +1,39 @@
 <template>
-  <div class="product-cate boxright">
+  <div class="menus boxright">
     <div class="filter-container">
         <div class="filter-item">
-          <el-button type="primary" @click="handleadd(0,'增加分类',true,true)"><i class="el-icon-circle-plus"></i> 增加分类</el-button>
+          <el-button type="primary" @click="handleadd(0,'增加菜单',true,true)"><i class="el-icon-circle-plus"></i> 增加菜单</el-button>
         </div>
       </div>
     
     <el-table v-loading="listLoading" :data="list" border fit highlight-current-row>
-      <!-- <el-table-column type="expand" align="center">
+      <el-table-column type="expand" align="center">
           <template slot-scope="props">
-             <el-table :data="props.row.Category" border fit highlight-current-row >
-                <el-table-column label="分类名称" prop="Name" align="center" >
-                </el-table-column>           
-                <el-table-column label="图片" align="center" width="100px">
-                  <template slot-scope="scope">
-                    <img :src="scope.row.Img+'?imageView2/1/w/40/h/40'" class="img">
-                  </template>
-                </el-table-column>  
-                <el-table-column label="排序" align="center">
+             <el-table :data="props.row.MenuE" border fit highlight-current-row >
+                <el-table-column label="菜单名称" prop="Name" align="center" width="140" >
+                </el-table-column>
+                <el-table-column label="图标" width="100px" align="center">
+                    <template slot-scope="scope">                        
+                      <img :src="scope.row.Icon+'?imageView2/1/w/40/h/40'" class="img">
+                    </template>
+                </el-table-column>            
+                <el-table-column label="排序" width="170px" align="center">
                   <template slot-scope="scope">
                     <span @click="sort2(scope.row,scope.$index,-1,props.$index)" :class="scope.$index==0?'disabled':''">  
                     <i class="fa fa-arrow-up"></i>上移  
                     </span>&nbsp;&nbsp;&nbsp;  
-                    <span @click="sort2(scope.row,scope.$index,+1,props.$index)" :class="scope.$index==props.row.Category.length-1?'disabled':''">  
+                    <span @click="sort2(scope.row,scope.$index,+1,props.$index)" :class="scope.$index==props.row.MenuE.length-1?'disabled':''">  
                     <i class="fa fa-arrow-down"></i>下移  
                     </span> 
                   </template>
                 </el-table-column>
+                <el-table-column label="链接地址" prop="Url" width="200px" align="center"></el-table-column>
+                <el-table-column label="控制器" prop="Controller" width="200px" align="center"></el-table-column>
                 <el-table-column label="操作" align="center">
                   <template slot-scope="scope">
                     <el-button
                       size="mini"  type="primary"
-                      @click="handleditor(scope.row,'修改子分类',false,false)"><i class="el-icon-edit"></i> 编辑</el-button>
+                      @click="handleditor(scope.row,'修改子菜单',false,false)"><i class="el-icon-edit"></i> 编辑</el-button>
                     <el-button
                       size="mini" type="danger"
                       @click="handledel(scope.row)"><i class="el-icon-delete"></i> 删除</el-button>
@@ -39,15 +41,15 @@
                 </el-table-column>
              </el-table>
           </template>
-      </el-table-column> -->
-      <el-table-column label="分类名称" prop="Name" align="center">
-      </el-table-column>      
-      <!-- <el-table-column label="图片" align="center" width="100px">
-        <template slot-scope="scope">
-          <img v-if="scope.row.Img" :src="scope.row.Img+'?imageView2/1/w/40/h/40'" class="img">
-        </template>
-      </el-table-column>   -->
-      <el-table-column label="排序" align="center">
+      </el-table-column>
+      <el-table-column label="菜单名称" prop="Name" align="center" width="140">
+      </el-table-column>
+      <el-table-column label="图标" width="100px" align="center">
+          <template slot-scope="scope">
+              <img :src="scope.row.Icon+'?imageView2/1/w/40/h/40'" class="img">
+          </template>
+      </el-table-column>
+      <el-table-column label="排序" width="170px" align="center">
          <template slot-scope="scope">
           <span @click="sort(scope.row,scope.$index,-1)" :class="scope.$index==0?'disabled':''">  
           <i class="fa fa-arrow-up"></i>上移  
@@ -57,40 +59,39 @@
           </span> 
         </template>
       </el-table-column>
+      <el-table-column label="链接地址" prop="Url" width="200px" align="center"></el-table-column>
+      <el-table-column label="控制器" prop="Controller" width="200px" align="center"></el-table-column>
       <el-table-column label="操作" align="center">
          <template slot-scope="scope">
           <el-button
             size="mini"  type="primary"
-            @click="handleditor(scope.row,'修改分类',true,false)"><i class="el-icon-edit"></i></el-button>
+            @click="handleditor(scope.row,'修改菜单',true,false)"><i class="el-icon-edit"></i> 编辑</el-button>
           <el-button
             size="mini" type="danger"
-            @click="handledel(scope.row)"><i class="el-icon-delete"></i></el-button>
-          <!-- <el-button
+            @click="handledel(scope.row)"><i class="el-icon-delete"></i> 删除</el-button>
+          <el-button
             size="mini" type="success"
-            @click="handleadd(scope.row,'增加子分类',false,true,scope.$index)"><i class="el-icon-circle-plus"></i> 增加子分类</el-button> -->
+            @click="handleadd(scope.row,'增加子菜单',false,true,scope.$index)"><i class="el-icon-circle-plus"></i> 增加子菜单</el-button>
         </template>
       </el-table-column>
     </el-table>
     <el-dialog :title="dialogStatus" :visible.sync="dialogFormVisible" :close-on-click-modal="false" width="550px">
-      <el-form ref="dataForm" :rules="rules" :model="temp" label-position="left" label-width="100px" style="width: 400px; margin-left:50px;">        
-        <el-form-item label="类型" prop="Type" style="width:500px">
-          <el-select
-            v-model="temp.Type"
-            placeholder="选择类型"
-            clearable
-            style="width: 150px"
-            class="filter-item"
-          >
-            <el-option v-for="item in Model" :label="item.Text" :value="item.Value" :key="item.Value"></el-option>
-          </el-select>
-        </el-form-item> 
-        <el-form-item label="分类名称" prop="Name">
-          <el-input v-model="temp.Name" placeholder="请填写分类名称"/>
+      <el-form ref="dataForm" :rules="rules" :model="temp" label-position="left" label-width="100px" style="width: 400px; margin-left:50px;">
+        <el-form-item label="菜单名称" prop="Name">
+          <el-input v-model="temp.Name" placeholder="请填写菜单名称"/>
         </el-form-item>
-        <!-- <el-form-item label="图片：" prop="Img">
-          <Uploadimgs v-model="temp.Img" ref="upLoadimg"></Uploadimgs>
-          <div class="chicun">尺寸：170*170</div>
-        </el-form-item> -->
+        <el-form-item label="图标" prop="Icon">
+          <div class="video">            
+            <Uploadimgs v-model="temp.Icon" ref="upLoadimg"></Uploadimgs>
+            <div class="chicun">尺寸：300*300</div>  
+          </div>
+        </el-form-item>
+        <el-form-item label="链接">
+          <el-input v-model="temp.Url" placeholder="请填写菜单链接"/>
+        </el-form-item>
+        <el-form-item label="控制器">
+          <el-input v-model="temp.Controller" placeholder="请填写菜单控制器"/>
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">取消</el-button>
@@ -113,40 +114,30 @@ export default {
         Id: 0,
         Name: '',
         ParentId: 0,
-        Img:'',
-        Type:''
+        Url: '',
+        Icon: '',
+        Controller:''
       },
       flag:true,//排序连点禁止
       dialogStatus:'',//面板标题    
       dialogFormVisible: false,//面板是否展示
-      ismain:false,//是否一级
+      ismain:false,//是否一
       iscreate:false,//是否是添加
       index:0,//当前index
-      Model:[],
       rules: {
-        Name: [{ required: true, message: '分类名称必须填写！', trigger: 'blur' }],
-        Type: [{ required: true, message: '类型必须选择！', trigger: 'blur' }]
+        Name: [{ required: true, message: '菜单名称必须填写！', trigger: 'blur' }]
       },
     };
   },
   created() {
     request({
-      url: "ProductCategory/GetCategoryList",
+      url: "CubeMenu/GetCUMenusList",
       method: "get",
       params: {}
     }).then(response => {
       if(response.Status==1){
         this.list = response.List;
         this.listLoading = false;
-      }
-    });
-    request({
-      url: "ProductCategory/GetDDL",
-      method: "get",
-      params: {}
-    }).then(response => {
-      if(response.Status==1){
-        this.Model = response.List;
       }
     });
   },
@@ -156,8 +147,10 @@ export default {
         Id: row.Id,
         Name: row.Name,
         ParentId: row.ParentId,
-        Img:row.Img,
-        Type:row.Type.toString()
+        Sort: row.Sort,
+        Url: row.Url,
+        Icon: row.Icon,
+        Controller:row.Controller
       };
       this.dialogStatus = title;
       this.dialogFormVisible = true;
@@ -169,13 +162,13 @@ export default {
     },
     handledel(row,title,isok){
       var data=this.$qs.stringify({Id:row.Id});
-      this.$confirm("确定要删除该产品分类吗？", '提示', {
+      this.$confirm("确定要删除该菜单吗？", '提示', {
           dangerouslyUseHTMLString: true,
           confirmButtonText: '确定',
           cancelButtonText: '取消',
         }).then(() => {
            request({
-            url: "ProductCategory/Del",
+            url: "CubeMenu/DelCUMenus",
             method: "post",
             data
           }).then(response => {
@@ -190,9 +183,9 @@ export default {
               }else{
                   for(let i in this.list){
                     if(this.list[i].Id===row.ParentId){
-                      for (let v in this.list[i].Category) {                      
-                        if (this.list[i].Category[v].Id === row.Id) {
-                          this.list[i].Category.splice(v, 1)
+                      for (let v in this.list[i].MenuE) {                      
+                        if (this.list[i].MenuE[v].Id === row.Id) {
+                          this.list[i].MenuE.splice(v, 1)
                           break
                         }
                       }
@@ -210,16 +203,19 @@ export default {
           Id: 0,
           Name: '',
           ParentId: 0,
-          Category:[],
-          Img:'',
-          Type:''
+          Url: '',
+          Icon: '',
+          MenuE:[],
+          Controller:''
         };
       }else{
         this.temp={
           Id: 0,
           Name: '',
           ParentId: 0,
-          Img:''
+          Url: '',
+          Icon: '',
+          Controller:''
         };
       }  
       if(row!=0){
@@ -235,64 +231,64 @@ export default {
       })
     },
     createData(){
+      var data=this.$qs.stringify(this.temp);
       this.$refs['dataForm'].validate((valid) => {
         if (valid) {              
-          this.subrequest(); 
-        }
-      })
-    },   
-    subrequest(){
-      var data=this.$qs.stringify(this.temp);
-      request({
-          url: "ProductCategory/SetCategory",
-          method: "post",
-          data
-        }).then(response => {
-          if(response.Status==1){
-            if(this.iscreate){
-              this.temp.Id=response.Id;
-              if(this.ismain){
-                this.list.push(this.temp);
+          request({
+            url: "CubeMenu/SaveCUMenus",
+            method: "post",
+            data
+          }).then(response => {
+            if(response.Status==1){
+              if(this.iscreate){
+                this.temp.Id=response.Id;
+                if(this.ismain){
+                  this.list.push(this.temp);
+                }else{
+                  this.list[this.index].MenuE.push(this.temp);
+                }              
               }else{
-                this.list[this.index].Category.push(this.temp);
-              }              
-            }else{
-              if(this.temp.ParentId==0){
-                for (let i in this.list) {
-                  if (this.list[i].Id === this.temp.Id) {
-                    this.list[i].Name=this.temp.Name;
-                    this.list[i].Img=this.temp.Img;
-                    break
+                if(this.temp.ParentId==0){
+                  for (let i in this.list) {
+                    if (this.list[i].Id === this.temp.Id) {
+                      this.list[i].Name=this.temp.Name;
+                      this.list[i].Url=this.temp.Url;
+                      this.list[i].Icon=this.temp.Icon;
+                      this.list[i].Controller=this.temp.Controller;
+                      break
+                    }
                   }
-                }
-              }else{
-                for(let i in this.list){
-                  if(this.list[i].Id===this.temp.ParentId){
-                    for (let v in this.list[i].Category) {                      
-                      if (this.list[i].Category[v].Id === this.temp.Id) {
-                        this.list[i].Category[v].Name=this.temp.Name;
-                        this.list[i].Category[v].Img=this.temp.Img;
-                        break
+                }else{
+                  for(let i in this.list){
+                    if(this.list[i].Id===this.temp.ParentId){
+                      for (let v in this.list[i].MenuE) {                      
+                        if (this.list[i].MenuE[v].Id === this.temp.Id) {
+                          this.list[i].MenuE[v].Name=this.temp.Name;
+                          this.list[i].MenuE[v].Url=this.temp.Url;
+                          this.list[i].MenuE[v].Icon=this.temp.Icon;
+                          this.list[i].MenuE[v].Controller=this.temp.Controller;
+                          break
+                        }
                       }
                     }
                   }
-                }
-              }              
+                }              
+              }
+              this.dialogFormVisible = false
+              this.$message({
+                message: response.Msg,
+                type: 'success'
+              })
             }
-            this.dialogFormVisible = false;
-            this.$refs.upLoadimg.clearimgs();
-            this.$message({
-              message: response.Msg,
-              type: 'success'
-            })
-          }
-        });
-    },
+          });
+        }
+      })
+    },    
     sort: function (item, index, type) {//使用方法：传递当前数组的item,index下标,-1为上移，+1为下移  
         this.setup(item, index, type,this.list);
     },
     sort2: function (item, index, type,indexbig) {//使用方法：传递当前数组的item,index下标,-1为上移，+1为下移   
-        this.setup(item, index, type,this.list[indexbig].Category);
+        this.setup(item, index, type,this.list[indexbig].MenuE);
     },
     setup: function (item, index, type, arr1) {
         if (!this.flag) {
@@ -306,7 +302,7 @@ export default {
         var id1 = item.Id, id2 = arr1[index + type].Id;//当前id为 id1,替换id为id2
         var data=this.$qs.stringify({id1: id1, id2: id2,});
         request({
-          url: "ProductCategory/Sort",
+          url: "CubeMenu/CUSort",
           method: "post",
           data
         }).then(response => {
@@ -321,10 +317,6 @@ export default {
 };
 </script>
 <style lang="scss" rel="stylesheet/scss">
-  .product-cate .disabled{color: #C0C4CC;}
-  .product-cate span{cursor: pointer;}
-  
-  .product-cate .chicun {
-    color: #f00;
-  }
+  .menus .disabled{color: #C0C4CC;}
+  .menus span{cursor: pointer;}
 </style>
